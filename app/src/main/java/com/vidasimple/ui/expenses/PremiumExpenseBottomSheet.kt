@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PremiumExpenseBottomSheet(
+    selectedSpaceName: String?,
     onDismiss: () -> Unit,
     onConfirm: (String, Double, String) -> Unit
 ) {
@@ -58,12 +59,29 @@ fun PremiumExpenseBottomSheet(
                 .padding(bottom = 40.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            Text(
-                text = "Registrar Gasto",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color(0xFF1E293B)
-            )
+            Column {
+                Text(
+                    text = "Registrar Gasto",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFF1E293B)
+                )
+                if (selectedSpaceName != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color(0xFF10B981).copy(alpha = 0.1f)
+                    ) {
+                        Text(
+                            text = "Para $selectedSpaceName (Cuenta Clara)",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF10B981),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+            }
 
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                 Text(text = "Monto", fontSize = 14.sp, color = Color.Gray, fontWeight = FontWeight.Bold)

@@ -419,16 +419,19 @@ fun SpaceActivityPanel(
                                 "task_created" -> "creó la tarea"
                                 "task_completed" -> "completó la tarea"
                                 "task_assigned" -> "asignó la tarea"
+                                "expense_added" -> "añadió el gasto"
                                 else -> "modificó el espacio"
                             }
                             val icon = when (act.action) {
                                 "task_created" -> Icons.Default.AddTask
                                 "task_completed" -> Icons.Default.CheckCircle
                                 "task_assigned" -> Icons.Default.Person
+                                "expense_added" -> Icons.Default.Receipt
                                 else -> Icons.Default.Edit
                             }
                             val iconColor = when (act.action) {
                                 "task_completed" -> SuccessGreen
+                                "expense_added" -> Color(0xFF10B981) // TealAccent / Emerald
                                 else -> VioletPrimary
                             }
 

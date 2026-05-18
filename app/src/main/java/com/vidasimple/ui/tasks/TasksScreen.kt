@@ -630,10 +630,10 @@ fun AdvancedTaskItem(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(VioletPrimary.copy(alpha = 0.08f))
-                                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                                        .background(VioletPrimary.copy(alpha = 0.12f))
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
                                 ) {
-                                    val name = assignee.name ?: assignee.email ?: "Miembro"
+                                    val name = assignee.name ?: assignee.email?.substringBefore("@") ?: "Miembro"
                                     val initial = name.firstOrNull()?.toString()?.uppercase() ?: "?"
                                     
                                     Box(
@@ -659,17 +659,33 @@ fun AdvancedTaskItem(
                                     )
                                 }
                             } else {
-                                Surface(
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = priorityColor.copy(alpha = 0.1f)
-                                ) {
-                                    Text(
-                                        text = "General",
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = priorityColor,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                                    )
+                                if (task.spaceId != null) {
+                                    // It's a shared task but unassigned
+                                    Surface(
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = MaterialTheme.colorScheme.surfaceVariant
+                                    ) {
+                                        Text(
+                                            text = "Sin asignar",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                        )
+                                    }
+                                } else {
+                                    Surface(
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = priorityColor.copy(alpha = 0.1f)
+                                    ) {
+                                        Text(
+                                            text = "General",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = priorityColor,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                        )
+                                    }
                                 }
                             }
                             

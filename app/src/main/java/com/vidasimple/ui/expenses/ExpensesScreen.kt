@@ -202,7 +202,9 @@ fun ExpensesScreen(
 
         // ── Dialogs ───────────────────────────────────────────────────────
         if (showAddBottomSheet) {
+            val selectedSpace = spacesViewModel.spaces.firstOrNull { it.id == spacesViewModel.selectedSpaceId }
             PremiumExpenseBottomSheet(
+                selectedSpaceName = selectedSpace?.name,
                 onDismiss = { showAddBottomSheet = false },
                 onConfirm = { title, amount, category ->
                     viewModel.addExpense(title, amount, category)

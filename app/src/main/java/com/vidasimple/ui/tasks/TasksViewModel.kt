@@ -90,7 +90,9 @@ class TasksViewModel(application: android.app.Application) : androidx.lifecycle.
                 
                 val filteredTasks = if (selectedSpaceId.value == null) {
                     results.filter { it.spaceId == null }
-                } else results
+                } else {
+                    results.filter { it.spaceId == selectedSpaceId.value }
+                }
 
                 _tasks.clear()
                 _tasks.addAll(filteredTasks)

@@ -94,7 +94,9 @@ class ExpensesViewModel(application: android.app.Application) : androidx.lifecyc
                 
                 val filteredExpenses = if (selectedSpaceId.value == null) {
                     results.filter { it.spaceId == null }
-                } else results
+                } else {
+                    results.filter { it.spaceId == selectedSpaceId.value }
+                }
 
                 _allExpenses.clear()
                 _allExpenses.addAll(filteredExpenses)
@@ -210,6 +212,17 @@ class ExpensesViewModel(application: android.app.Application) : androidx.lifecyc
                 _allExpenses.add(0, insertedExpense)
                 updateFilteredExpenses()
                 syncWidget()
+
+                // Log activity if inside a shared space
+                if (insertedExpense.spaceId != null) {
+                    val activity = com.vidasimple.domain.model.SpaceActivity(
+                        spaceId     = insertedExpense.spaceId,
+                        userId      = userId,
+                        action      = "expense_added",
+                        entityTitle = insertedExpense.title
+                    )
+                    SupabaseManager.client.from("space_activity").insert(activity)
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
                 fetchExpenses()
