@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VidaSimple</string>
+    <string name="widget_general_name">VidaSimple General</string>
+    <string name="widget_general_desc">Visualiza tu racha, tareas pendientes y presupuesto del día.</string>
+    <string name="widget_ai_name">AI Coach Directo</string>
+    <string name="widget_ai_desc">Habla directamente con tu entrenador personal de IA con un solo toque.</string>
+    <string name="widget_streak_name">Racha y Motivación</string>
+    <string name="widget_streak_desc">Mira tu racha activa de días y recibe una frase motivadora todos los días.</string>
+    <string name="widget_tasks_name">Mis Tareas Premium</string>
+    <string name="widget_tasks_desc">Mantén el control de tus tareas pendientes más urgentes directamente en tu pantalla.</string>
+    <string name="widget_budget_name">Presupuesto Mensual</string>
+    <string name="widget_budget_desc">Monitorea tus gastos mensuales y estado de tu presupuesto seguro en tiempo real.</string>
+</resources>

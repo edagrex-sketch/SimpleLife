@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.vidasimple">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="VidaSimple"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.App.Starting">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.App.Starting">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".notifications.VidaSimpleMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- App Widget Provider -->
+        <receiver
+            android:name=".widget.VidaSimpleWidgetProvider"
+            android:exported="false"
+            android:label="VidaSimple Premium">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/vidasimple_widget_info" />
+        </receiver>
+
+        <!-- AI Coach Dedicated Widget -->
+        <receiver
+            android:name=".widget.AICoachWidgetProvider"
+            android:exported="false"
+            android:label="VidaSimple - AI Coach">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/vidasimple_widget_ai_info" />
+        </receiver>
+
+        <!-- Streak Widget -->
+        <receiver
+            android:name=".widget.StreakWidgetProvider"
+            android:exported="false"
+            android:label="VidaSimple - Racha y Motivación">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/vidasimple_widget_streak_info" />
+        </receiver>
+
+        <!-- Tasks List Widget -->
+        <receiver
+            android:name=".widget.TasksListWidgetProvider"
+            android:exported="false"
+            android:label="VidaSimple - Mis Tareas">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/vidasimple_widget_tasks_info" />
+        </receiver>
+
+        <!-- Budget Widget -->
+        <receiver
+            android:name=".widget.BudgetWidgetProvider"
+            android:exported="false"
+            android:label="VidaSimple - Presupuesto Seguro">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/vidasimple_widget_budget_info" />
+        </receiver>
+    </application>
+
+</manifest>

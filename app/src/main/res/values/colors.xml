@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base colors for XML (splash screen, etc.) -->
+    <color name="violet_primary">#7C3AED</color>
+    <color name="teal_accent">#06B6D4</color>
+    <color name="dark_bg">#0D0B1E</color>
+    <color name="light_bg">#F5F3FF</color>
+    <color name="white">#FFFFFF</color>
+</resources>

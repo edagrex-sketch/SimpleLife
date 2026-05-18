@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Splash Screen Theme (Android 12+) -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- Deep violet background matching brand -->
+        <item name="windowSplashScreenBackground">@color/violet_primary</item>
+        <!-- App icon -->
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <!-- Post-splash theme -->
+        <item name="postSplashScreenTheme">@android:style/Theme.DeviceDefault.Light.NoActionBar</item>
+    </style>
+</resources>
