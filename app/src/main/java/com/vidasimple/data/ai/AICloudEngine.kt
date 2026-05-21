@@ -1,6 +1,7 @@
 package com.vidasimple.data.ai
 
 import android.content.Context
+import com.vidasimple.BuildConfig
 import com.vidasimple.ui.home.AICoachEngine
 import com.vidasimple.ui.tasks.TasksViewModel
 import com.vidasimple.ui.expenses.ExpensesViewModel
@@ -24,7 +25,8 @@ object AICloudEngine {
     
     // Default values
     private const val DEFAULT_PROVIDER = "groq"
-    private const val DEFAULT_KEY = "gsk_REMOVED_FROM_HISTORY"
+    // The actual key is loaded from BuildConfig.GROQ_API_KEY (set via secrets.properties)
+private const val DEFAULT_KEY = "" // Fallback - key should be set in secrets.properties
 
     private val jsonConfig = Json {
         ignoreUnknownKeys = true
@@ -46,7 +48,11 @@ object AICloudEngine {
 
     fun getApiKey(context: Context): String {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getString(KEY_API_KEY, DEFAULT_KEY) ?: DEFAULT_KEY
+        val savedKey = prefs.getString(KEY_API_KEY, null)
+        if (!savedKey.isNullOrBlank()) return savedKey
+        
+        // Try BuildConfig (from secrets.properties), then fallback
+        return if (BuildConfig.GROQ_API_KEY.isNotBlank()) BuildConfig.GROQ_API_KEY else DEFAULT_KEY
     }
 
     fun saveSettings(context: Context, provider: String, apiKey: String) {

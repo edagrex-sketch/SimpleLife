@@ -20,6 +20,14 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // API keys from secrets.properties (excluded from git)
+        val secretsFile = rootProject.file("secrets.properties")
+        val secrets = java.util.Properties()
+        if (secretsFile.exists()) {
+            secrets.load(java.io.FileInputStream(secretsFile))
+        }
+        buildConfigField("String", "GROQ_API_KEY", """ + (secrets.getProperty("groq_api_key", "") ?: "") + """)
     }
 
     buildTypes {
@@ -37,6 +45,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.8"
@@ -47,6 +56,12 @@ android {
         }
     }
 }
+// Load API keys from local secrets.properties (excluded from git)
+    val secretsFile = rootProject.file("secrets.properties")
+    val secrets = java.util.Properties()
+    if (secretsFile.exists()) {
+        secrets.load(java.io.FileInputStream(secretsFile))
+    }
 
 dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
