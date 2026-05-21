@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vidasimple.data.supabase.SupabaseManager
 import com.vidasimple.domain.model.Task
+import com.vidasimple.workers.InsightsWorker
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.functions.functions
@@ -19,6 +20,9 @@ class ProfileViewModel(application: android.app.Application) : androidx.lifecycl
         private set
 
     var darkModeEnabled = mutableStateOf(false)
+        private set
+
+    var insightsEnabled = mutableStateOf(true)
         private set
 
     var userName = mutableStateOf("Usuario VidaSimple")
@@ -39,6 +43,7 @@ class ProfileViewModel(application: android.app.Application) : androidx.lifecycl
     init {
         loadUserProfile()
         refreshData()
+        insightsEnabled.value = InsightsWorker.isEnabled(getApplication())
     }
 
     fun refreshData() {
@@ -49,7 +54,6 @@ class ProfileViewModel(application: android.app.Application) : androidx.lifecycl
         val user = SupabaseManager.client.auth.currentUserOrNull()
         user?.let {
             userEmail.value = it.email ?: "email@ejemplo.com"
-            // Intentamos obtener el nombre de los metadatos (primero "name", luego "full_name")
             val metadata = it.userMetadata
             val name = metadata?.get("name")?.toString()?.removeSurrounding("\"") 
                 ?: metadata?.get("full_name")?.toString()?.removeSurrounding("\"")
@@ -67,7 +71,6 @@ class ProfileViewModel(application: android.app.Application) : androidx.lifecycl
         
         viewModelScope.launch {
             try {
-                // Obtenemos todas las tareas del usuario
                 val allTasks = SupabaseManager.client.from("tasks")
                     .select {
                         filter {
@@ -85,7 +88,6 @@ class ProfileViewModel(application: android.app.Application) : androidx.lifecycl
                     return@launch
                 }
 
-                // Extraemos las fechas únicas de las tareas completadas
                 val completedDates = completedTasks.mapNotNull { it.dueDate }
                     .map { LocalDate.parse(it) }
                     .distinct()
@@ -100,12 +102,10 @@ class ProfileViewModel(application: android.app.Application) : androidx.lifecycl
                 var currentStreak = 0
                 var checkDate = LocalDate.now()
 
-                // Si hoy no hay tareas, empezamos a checkear desde ayer
                 if (!completedDates.contains(checkDate)) {
                     checkDate = checkDate.minusDays(1)
                 }
 
-                // Contamos hacia atrás
                 for (date in completedDates) {
                     if (date == checkDate) {
                         currentStreak++
@@ -130,6 +130,12 @@ class ProfileViewModel(application: android.app.Application) : androidx.lifecycl
 
     fun toggleDarkMode(enabled: Boolean) {
         darkModeEnabled.value = enabled
+    }
+
+    fun toggleInsights(enabled: Boolean) {
+        insightsEnabled.value = enabled
+        InsightsWorker.setEnabled(getApplication(), enabled)
+        statusMessage.value = if (enabled) "Briefing diario activado ☀️" else "Briefing diario desactivado"
     }
 
     fun signOut(onSuccess: () -> Unit) {
