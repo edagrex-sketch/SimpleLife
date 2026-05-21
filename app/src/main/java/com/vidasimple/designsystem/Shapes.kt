@@ -7,7 +7,7 @@ import androidx.compose.ui.unit.dp
 val VidaSimpleShapes = Shapes(
     extraSmall = RoundedCornerShape(4.dp),
     small = RoundedCornerShape(8.dp),
-    medium = RoundedCornerShape(16.dp), // Para Cards
-    large = RoundedCornerShape(24.dp),
-    extraLarge = RoundedCornerShape(32.dp) // Estilo "pill" para botones si se usa el shape correcto
+    medium = RoundedCornerShape(12.dp), // Para Cards y botones pequeños
+    large = RoundedCornerShape(16.dp),  // Para Contenedores y Hojas de diálogo principales
+    extraLarge = RoundedCornerShape(24.dp) // Estilo pill / botones principales
 )

@@ -1,8 +1,11 @@
 package com.vidasimple.ui.spaces
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
+import androidx.compose.ui.draw.scale
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -87,10 +90,9 @@ fun SpaceSelectorBar(
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .shadow(4.dp, CircleShape, spotColor = VioletPrimary.copy(alpha = 0.3f))
+                        .bounceClick { onCreateClick() }
                         .clip(CircleShape)
-                        .background(Brush.linearGradient(GradientViolet))
-                        .clickable { onCreateClick() },
+                        .background(Brush.linearGradient(GradientViolet)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -115,12 +117,12 @@ fun SpaceSelectorBar(
             ) {
                 Row(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(VioletPrimary.copy(alpha = 0.08f))
-                        .clickable {
+                        .bounceClick {
                             clipboard.setText(AnnotatedString(selectedSpace.inviteCode))
                             copied = true
                         }
+                        .clip(MaterialTheme.shapes.medium)
+                        .background(VioletPrimary.copy(alpha = 0.08f))
                         .padding(horizontal = 14.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -177,11 +179,12 @@ fun SpaceSelectorBar(
                     val isOwner = selectedSpace.ownerId == currentUserId
                     if (isOwner && onDeleteClick != null) {
                         IconButton(
-                            onClick = onDeleteClick,
+                            onClick = {},
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(CircleShape)
                                 .background(Color(0xFFFEE2E2))
+                                .bounceClick { onDeleteClick() }
                         ) {
                             Icon(
                                 Icons.Default.Delete,
@@ -206,11 +209,12 @@ fun DeleteSpaceConfirmDialog(
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(28.dp),
+            shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surface,
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(24.dp, RoundedCornerShape(28.dp), spotColor = Color.Red.copy(alpha = 0.2f))
+                .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f), MaterialTheme.shapes.large)
+                .shadow(24.dp, MaterialTheme.shapes.large, spotColor = Color.Red.copy(alpha = 0.2f))
         ) {
             Column(
                 modifier = Modifier.padding(28.dp),
@@ -253,16 +257,16 @@ fun DeleteSpaceConfirmDialog(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.weight(1f).height(52.dp),
-                        shape = RoundedCornerShape(16.dp)
+                        onClick = {},
+                        modifier = Modifier.weight(1f).height(52.dp).bounceClick { onDismiss() },
+                        shape = MaterialTheme.shapes.medium
                     ) {
                         Text("Cancelar", fontWeight = FontWeight.Bold)
                     }
                     Button(
-                        onClick = onConfirm,
-                        modifier = Modifier.weight(1f).height(52.dp),
-                        shape = RoundedCornerShape(16.dp),
+                        onClick = {},
+                        modifier = Modifier.weight(1f).height(52.dp).bounceClick(enabled = !isLoading) { onConfirm() },
+                        shape = MaterialTheme.shapes.medium,
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)),
                         enabled = !isLoading
                     ) {
@@ -300,9 +304,22 @@ fun MemberAvatarsRow(members: List<Profile>) {
                 else -> Brush.linearGradient(listOf(Color(0xFF10B981), Color(0xFF047857)))
             }
 
+            val scale = remember { Animatable(0f) }
+            LaunchedEffect(member.id) {
+                delay(i * 80L)
+                scale.animateTo(
+                    targetValue = 1f,
+                    animationSpec = spring(
+                        dampingRatio = 0.68f,
+                        stiffness = Spring.StiffnessMediumLow
+                    )
+                )
+            }
+
             Box(
                 modifier = Modifier
                     .size(28.dp)
+                    .scale(scale.value)
                     .shadow(2.dp, CircleShape)
                     .clip(CircleShape)
                     .background(bgGradient),
@@ -318,9 +335,22 @@ fun MemberAvatarsRow(members: List<Profile>) {
         }
 
         if (remainingCount > 0) {
+            val scale = remember { Animatable(0f) }
+            LaunchedEffect(remainingCount) {
+                delay(displayMembers.size * 80L)
+                scale.animateTo(
+                    targetValue = 1f,
+                    animationSpec = spring(
+                        dampingRatio = 0.68f,
+                        stiffness = Spring.StiffnessMediumLow
+                    )
+                )
+            }
+
             Box(
                 modifier = Modifier
                     .size(28.dp)
+                    .scale(scale.value)
                     .shadow(2.dp, CircleShape)
                     .clip(CircleShape)
                     .background(Color(0xFFE2E8F0)),
@@ -347,15 +377,16 @@ fun SpaceActivityPanel(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 12.dp),
-        shape = RoundedCornerShape(20.dp),
+            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.06f), MaterialTheme.shapes.large),
+        shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { expanded = !expanded },
+                    .bounceClick { expanded = !expanded },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -484,12 +515,12 @@ fun SpaceChip(
 
     Surface(
         modifier      = Modifier
-            .shadow(if (isSelected) 8.dp else 2.dp, RoundedCornerShape(20.dp),
-                spotColor = VioletPrimary.copy(alpha = if (isSelected) 0.3f else 0f))
-            .clickable { onClick() },
-        shape         = RoundedCornerShape(20.dp),
-        color         = containerColor,
-        tonalElevation = if (isSelected) 4.dp else 0.dp
+            .bounceClick { onClick() }
+            .then(
+                if (isSelected) Modifier else Modifier.border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.08f), MaterialTheme.shapes.large)
+            ),
+        shape         = MaterialTheme.shapes.large,
+        color         = containerColor
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp),
@@ -526,11 +557,12 @@ fun CreateSpaceDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(32.dp),
+            shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surface,
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(24.dp, RoundedCornerShape(32.dp), spotColor = VioletPrimary.copy(alpha = 0.2f))
+                .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f), MaterialTheme.shapes.large)
+                .shadow(24.dp, MaterialTheme.shapes.large, spotColor = VioletPrimary.copy(alpha = 0.2f))
         ) {
             Column(modifier = Modifier.padding(28.dp)) {
 
@@ -579,9 +611,13 @@ fun CreateSpaceDialog(
                         )
                     },
                     divider = {},
-                    modifier = Modifier.clip(RoundedCornerShape(12.dp))
+                    modifier = Modifier.clip(MaterialTheme.shapes.medium)
                 ) {
-                    Tab(selected = mode == 0, onClick = { mode = 0; nameError = false; codeError = false }) {
+                    Tab(
+                        selected = mode == 0,
+                        onClick = {},
+                        modifier = Modifier.bounceClick { mode = 0; nameError = false; codeError = false }
+                    ) {
                         Row(
                             modifier = Modifier.padding(vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically,
@@ -591,7 +627,11 @@ fun CreateSpaceDialog(
                             Text("Crear", fontWeight = FontWeight.SemiBold)
                         }
                     }
-                    Tab(selected = mode == 1, onClick = { mode = 1; nameError = false; codeError = false }) {
+                    Tab(
+                        selected = mode == 1,
+                        onClick = {},
+                        modifier = Modifier.bounceClick { mode = 1; nameError = false; codeError = false }
+                    ) {
                         Row(
                             modifier = Modifier.padding(vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically,
@@ -623,7 +663,7 @@ fun CreateSpaceDialog(
                                 isError       = nameError,
                                 supportingText = if (nameError) ({ Text("El nombre es requerido") }) else null,
                                 modifier      = Modifier.fillMaxWidth(),
-                                shape         = RoundedCornerShape(16.dp),
+                                shape         = MaterialTheme.shapes.medium,
                                 singleLine    = true,
                                 colors        = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor   = VioletPrimary,
@@ -632,7 +672,7 @@ fun CreateSpaceDialog(
                                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
                             )
                             Surface(
-                                shape = RoundedCornerShape(12.dp),
+                                shape = MaterialTheme.shapes.medium,
                                 color = VioletPrimary.copy(alpha = 0.08f),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
@@ -667,7 +707,7 @@ fun CreateSpaceDialog(
                                 isError       = codeError,
                                 supportingText = if (codeError) ({ Text("Ingresa el código de 6 letras") }) else null,
                                 modifier      = Modifier.fillMaxWidth(),
-                                shape         = RoundedCornerShape(16.dp),
+                                shape         = MaterialTheme.shapes.medium,
                                 singleLine    = true,
                                 colors        = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = VioletPrimary,
@@ -676,7 +716,7 @@ fun CreateSpaceDialog(
                                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters)
                             )
                             Surface(
-                                shape = RoundedCornerShape(12.dp),
+                                shape = MaterialTheme.shapes.medium,
                                 color = TealAccent.copy(alpha = 0.08f),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
@@ -706,26 +746,26 @@ fun CreateSpaceDialog(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedButton(
-                        onClick  = onDismiss,
-                        modifier = Modifier.weight(1f).height(52.dp),
-                        shape    = RoundedCornerShape(16.dp)
+                        onClick  = {},
+                        modifier = Modifier.weight(1f).height(52.dp).bounceClick { onDismiss() },
+                        shape    = MaterialTheme.shapes.medium
                     ) {
                         Text("Cancelar", fontWeight = FontWeight.Bold)
                     }
                     Button(
-                        onClick = {
+                        onClick = {},
+                        modifier = Modifier.weight(1f).height(52.dp).bounceClick(enabled = !isLoading) {
                             if (mode == 0) {
-                                if (spaceName.isBlank()) { nameError = true; return@Button }
+                                if (spaceName.isBlank()) { nameError = true; return@bounceClick }
                                 onCreate(spaceName)
                                 onDismiss()
                             } else {
-                                if (inviteCode.length < 6) { codeError = true; return@Button }
+                                if (inviteCode.length < 6) { codeError = true; return@bounceClick }
                                 onJoin(inviteCode)
                                 onDismiss()
                             }
                         },
-                        modifier = Modifier.weight(1f).height(52.dp),
-                        shape    = RoundedCornerShape(16.dp),
+                        shape    = MaterialTheme.shapes.medium,
                         colors   = ButtonDefaults.buttonColors(containerColor = VioletPrimary),
                         enabled  = !isLoading
                     ) {
@@ -763,11 +803,12 @@ fun InviteCodeBanner(
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape    = RoundedCornerShape(28.dp),
+            shape    = MaterialTheme.shapes.large,
             color    = MaterialTheme.colorScheme.surface,
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(20.dp, RoundedCornerShape(28.dp), spotColor = VioletPrimary.copy(alpha = 0.25f))
+                .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f), MaterialTheme.shapes.large)
+                .shadow(20.dp, MaterialTheme.shapes.large, spotColor = VioletPrimary.copy(alpha = 0.25f))
         ) {
             Column(
                 modifier = Modifier.padding(28.dp),
@@ -808,7 +849,7 @@ fun InviteCodeBanner(
 
                 // Code display
                 Surface(
-                    shape    = RoundedCornerShape(20.dp),
+                    shape    = MaterialTheme.shapes.medium,
                     color    = VioletPrimary.copy(alpha = 0.1f),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -825,7 +866,8 @@ fun InviteCodeBanner(
                             color      = VioletPrimary
                         )
                         IconButton(
-                            onClick = {
+                            onClick = {},
+                            modifier = Modifier.bounceClick {
                                 clipboard.setText(AnnotatedString(inviteCode))
                                 copied = true
                             }
@@ -851,9 +893,9 @@ fun InviteCodeBanner(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Button(
-                    onClick  = onDismiss,
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    shape    = RoundedCornerShape(16.dp),
+                    onClick  = {},
+                    modifier = Modifier.fillMaxWidth().height(52.dp).bounceClick { onDismiss() },
+                    shape    = MaterialTheme.shapes.medium,
                     colors   = ButtonDefaults.buttonColors(containerColor = VioletPrimary)
                 ) {
                     Text("¡Entendido!", fontWeight = FontWeight.Bold, color = Color.White)

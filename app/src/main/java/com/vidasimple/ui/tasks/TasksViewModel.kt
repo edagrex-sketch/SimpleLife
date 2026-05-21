@@ -48,11 +48,6 @@ class TasksViewModel(application: android.app.Application) : androidx.lifecycle.
     private val _profiles = mutableStateListOf<Profile>()
     val profiles: List<Profile> get() = _profiles
 
-    init {
-        fetchTasks()
-        fetchProfiles()
-    }
-
     var selectedSpaceId = mutableStateOf<String?>(null)
         private set
         
@@ -63,6 +58,11 @@ class TasksViewModel(application: android.app.Application) : androidx.lifecycle.
     
     var message by mutableStateOf<String?>(null)
         private set
+
+    init {
+        fetchTasks()
+        fetchProfiles()
+    }
 
     fun clearMessage() { message = null }
 

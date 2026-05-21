@@ -1,0 +1,148 @@
+Compiled from "AICoachBottomSheet.kt"
+public final class com.vidasimple.ui.home.ComposableSingletons$AICoachBottomSheetKt {
+  public static final com.vidasimple.ui.home.ComposableSingletons$AICoachBottomSheetKt INSTANCE;
+
+  public static kotlin.jvm.functions.Function2<androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> lambda-1;
+
+  public static kotlin.jvm.functions.Function2<androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> lambda-2;
+
+  public static kotlin.jvm.functions.Function3<androidx.compose.foundation.lazy.LazyItemScope, androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> lambda-3;
+
+  public static kotlin.jvm.functions.Function2<androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> lambda-4;
+
+  public static kotlin.jvm.functions.Function2<androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> lambda-5;
+
+  public static kotlin.jvm.functions.Function2<androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> lambda-6;
+
+  public static kotlin.jvm.functions.Function2<androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> lambda-7;
+
+  public static kotlin.jvm.functions.Function3<androidx.compose.foundation.layout.RowScope, androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> lambda-8;
+
+  public static kotlin.jvm.functions.Function3<androidx.compose.foundation.layout.RowScope, androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> lambda-9;
+
+  public static kotlin.jvm.functions.Function3<androidx.compose.foundation.layout.RowScope, androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> lambda-10;
+
+  public com.vidasimple.ui.home.ComposableSingletons$AICoachBottomSheetKt();
+    Code:
+       0: aload_0
+       1: invokespecial #8                  // Method java/lang/Object."<init>":()V
+       4: return
+
+  public final kotlin.jvm.functions.Function2<androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> getLambda-1$app_debug();
+    Code:
+       0: getstatic     #18                 // Field "lambda-1":Lkotlin/jvm/functions/Function2;
+       3: areturn
+
+  public final kotlin.jvm.functions.Function2<androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> getLambda-2$app_debug();
+    Code:
+       0: getstatic     #22                 // Field "lambda-2":Lkotlin/jvm/functions/Function2;
+       3: areturn
+
+  public final kotlin.jvm.functions.Function3<androidx.compose.foundation.lazy.LazyItemScope, androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> getLambda-3$app_debug();
+    Code:
+       0: getstatic     #29                 // Field "lambda-3":Lkotlin/jvm/functions/Function3;
+       3: areturn
+
+  public final kotlin.jvm.functions.Function2<androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> getLambda-4$app_debug();
+    Code:
+       0: getstatic     #33                 // Field "lambda-4":Lkotlin/jvm/functions/Function2;
+       3: areturn
+
+  public final kotlin.jvm.functions.Function2<androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> getLambda-5$app_debug();
+    Code:
+       0: getstatic     #37                 // Field "lambda-5":Lkotlin/jvm/functions/Function2;
+       3: areturn
+
+  public final kotlin.jvm.functions.Function2<androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> getLambda-6$app_debug();
+    Code:
+       0: getstatic     #41                 // Field "lambda-6":Lkotlin/jvm/functions/Function2;
+       3: areturn
+
+  public final kotlin.jvm.functions.Function2<androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> getLambda-7$app_debug();
+    Code:
+       0: getstatic     #45                 // Field "lambda-7":Lkotlin/jvm/functions/Function2;
+       3: areturn
+
+  public final kotlin.jvm.functions.Function3<androidx.compose.foundation.layout.RowScope, androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> getLambda-8$app_debug();
+    Code:
+       0: getstatic     #50                 // Field "lambda-8":Lkotlin/jvm/functions/Function3;
+       3: areturn
+
+  public final kotlin.jvm.functions.Function3<androidx.compose.foundation.layout.RowScope, androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> getLambda-9$app_debug();
+    Code:
+       0: getstatic     #54                 // Field "lambda-9":Lkotlin/jvm/functions/Function3;
+       3: areturn
+
+  public final kotlin.jvm.functions.Function3<androidx.compose.foundation.layout.RowScope, androidx.compose.runtime.Composer, java.lang.Integer, kotlin.Unit> getLambda-10$app_debug();
+    Code:
+       0: getstatic     #58                 // Field "lambda-10":Lkotlin/jvm/functions/Function3;
+       3: areturn
+
+  static {};
+    Code:
+       0: new           #2                  // class com/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt
+       3: dup
+       4: invokespecial #60                 // Method "<init>":()V
+       7: putstatic     #63                 // Field INSTANCE:Lcom/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt;
+      10: ldc           #64                 // int -1533681266
+      12: iconst_0
+      13: getstatic     #69                 // Field "com/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-1$1".INSTANCE:Lcom/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-1$1;
+      16: invokestatic  #75                 // Method androidx/compose/runtime/internal/ComposableLambdaKt.composableLambdaInstance:(IZLjava/lang/Object;)Landroidx/compose/runtime/internal/ComposableLambda;
+      19: checkcast     #77                 // class kotlin/jvm/functions/Function2
+      22: putstatic     #18                 // Field "lambda-1":Lkotlin/jvm/functions/Function2;
+      25: ldc           #78                 // int -1067795176
+      27: iconst_0
+      28: getstatic     #83                 // Field "com/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-2$1".INSTANCE:Lcom/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-2$1;
+      31: invokestatic  #75                 // Method androidx/compose/runtime/internal/ComposableLambdaKt.composableLambdaInstance:(IZLjava/lang/Object;)Landroidx/compose/runtime/internal/ComposableLambda;
+      34: checkcast     #77                 // class kotlin/jvm/functions/Function2
+      37: putstatic     #22                 // Field "lambda-2":Lkotlin/jvm/functions/Function2;
+      40: ldc           #84                 // int 896033054
+      42: iconst_0
+      43: getstatic     #89                 // Field "com/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-3$1".INSTANCE:Lcom/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-3$1;
+      46: invokestatic  #75                 // Method androidx/compose/runtime/internal/ComposableLambdaKt.composableLambdaInstance:(IZLjava/lang/Object;)Landroidx/compose/runtime/internal/ComposableLambda;
+      49: checkcast     #91                 // class kotlin/jvm/functions/Function3
+      52: putstatic     #29                 // Field "lambda-3":Lkotlin/jvm/functions/Function3;
+      55: ldc           #92                 // int -1149347125
+      57: iconst_0
+      58: getstatic     #97                 // Field "com/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-4$1".INSTANCE:Lcom/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-4$1;
+      61: invokestatic  #75                 // Method androidx/compose/runtime/internal/ComposableLambdaKt.composableLambdaInstance:(IZLjava/lang/Object;)Landroidx/compose/runtime/internal/ComposableLambda;
+      64: checkcast     #77                 // class kotlin/jvm/functions/Function2
+      67: putstatic     #33                 // Field "lambda-4":Lkotlin/jvm/functions/Function2;
+      70: ldc           #98                 // int 1183794601
+      72: iconst_0
+      73: getstatic     #103                // Field "com/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-5$1".INSTANCE:Lcom/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-5$1;
+      76: invokestatic  #75                 // Method androidx/compose/runtime/internal/ComposableLambdaKt.composableLambdaInstance:(IZLjava/lang/Object;)Landroidx/compose/runtime/internal/ComposableLambda;
+      79: checkcast     #77                 // class kotlin/jvm/functions/Function2
+      82: putstatic     #37                 // Field "lambda-5":Lkotlin/jvm/functions/Function2;
+      85: ldc           #104                // int 1640055698
+      87: iconst_0
+      88: getstatic     #109                // Field "com/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-6$1".INSTANCE:Lcom/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-6$1;
+      91: invokestatic  #75                 // Method androidx/compose/runtime/internal/ComposableLambdaKt.composableLambdaInstance:(IZLjava/lang/Object;)Landroidx/compose/runtime/internal/ComposableLambda;
+      94: checkcast     #77                 // class kotlin/jvm/functions/Function2
+      97: putstatic     #41                 // Field "lambda-6":Lkotlin/jvm/functions/Function2;
+     100: ldc           #110                // int -1157465487
+     102: iconst_0
+     103: getstatic     #115                // Field "com/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-7$1".INSTANCE:Lcom/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-7$1;
+     106: invokestatic  #75                 // Method androidx/compose/runtime/internal/ComposableLambdaKt.composableLambdaInstance:(IZLjava/lang/Object;)Landroidx/compose/runtime/internal/ComposableLambda;
+     109: checkcast     #77                 // class kotlin/jvm/functions/Function2
+     112: putstatic     #45                 // Field "lambda-7":Lkotlin/jvm/functions/Function2;
+     115: ldc           #116                // int -2118053382
+     117: iconst_0
+     118: getstatic     #121                // Field "com/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-8$1".INSTANCE:Lcom/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-8$1;
+     121: invokestatic  #75                 // Method androidx/compose/runtime/internal/ComposableLambdaKt.composableLambdaInstance:(IZLjava/lang/Object;)Landroidx/compose/runtime/internal/ComposableLambda;
+     124: checkcast     #91                 // class kotlin/jvm/functions/Function3
+     127: putstatic     #50                 // Field "lambda-8":Lkotlin/jvm/functions/Function3;
+     130: ldc           #122                // int 1821693105
+     132: iconst_0
+     133: getstatic     #127                // Field "com/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-9$1".INSTANCE:Lcom/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-9$1;
+     136: invokestatic  #75                 // Method androidx/compose/runtime/internal/ComposableLambdaKt.composableLambdaInstance:(IZLjava/lang/Object;)Landroidx/compose/runtime/internal/ComposableLambda;
+     139: checkcast     #91                 // class kotlin/jvm/functions/Function3
+     142: putstatic     #54                 // Field "lambda-9":Lkotlin/jvm/functions/Function3;
+     145: ldc           #128                // int -840376462
+     147: iconst_0
+     148: getstatic     #133                // Field "com/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-10$1".INSTANCE:Lcom/vidasimple/ui/home/ComposableSingletons$AICoachBottomSheetKt$lambda-10$1;
+     151: invokestatic  #75                 // Method androidx/compose/runtime/internal/ComposableLambdaKt.composableLambdaInstance:(IZLjava/lang/Object;)Landroidx/compose/runtime/internal/ComposableLambda;
+     154: checkcast     #91                 // class kotlin/jvm/functions/Function3
+     157: putstatic     #58                 // Field "lambda-10":Lkotlin/jvm/functions/Function3;
+     160: return
+}

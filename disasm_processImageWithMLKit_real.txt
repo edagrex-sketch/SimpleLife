@@ -1,0 +1,366 @@
+Compiled from "AICoachBottomSheet.kt"
+final class com.vidasimple.ui.home.AICoachBottomSheetKt$AICoachBottomSheet$processImageWithMLKit$1 extends kotlin.coroutines.jvm.internal.SuspendLambda implements kotlin.jvm.functions.Function2<kotlinx.coroutines.CoroutineScope, kotlin.coroutines.Continuation<? super kotlin.Unit>, java.lang.Object> {
+  int label;
+
+  final android.content.Context $context;
+
+  final android.net.Uri $uri;
+
+  final androidx.compose.runtime.snapshots.SnapshotStateList<com.vidasimple.ui.home.ChatMessage> $chatMessages;
+
+  final androidx.compose.runtime.MutableState<java.lang.Boolean> $isTyping$delegate;
+
+  com.vidasimple.ui.home.AICoachBottomSheetKt$AICoachBottomSheet$processImageWithMLKit$1(android.content.Context, android.net.Uri, androidx.compose.runtime.snapshots.SnapshotStateList<com.vidasimple.ui.home.ChatMessage>, androidx.compose.runtime.MutableState<java.lang.Boolean>, kotlin.coroutines.Continuation<? super com.vidasimple.ui.home.AICoachBottomSheetKt$AICoachBottomSheet$processImageWithMLKit$1>);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: putfield      #14                 // Field $context:Landroid/content/Context;
+       5: aload_0
+       6: aload_2
+       7: putfield      #18                 // Field $uri:Landroid/net/Uri;
+      10: aload_0
+      11: aload_3
+      12: putfield      #22                 // Field $chatMessages:Landroidx/compose/runtime/snapshots/SnapshotStateList;
+      15: aload_0
+      16: aload         4
+      18: putfield      #26                 // Field $isTyping$delegate:Landroidx/compose/runtime/MutableState;
+      21: aload_0
+      22: iconst_2
+      23: aload         5
+      25: invokespecial #29                 // Method kotlin/coroutines/jvm/internal/SuspendLambda."<init>":(ILkotlin/coroutines/Continuation;)V
+      28: return
+
+  public final java.lang.Object invokeSuspend(java.lang.Object);
+    Code:
+       0: invokestatic  #56                 // Method kotlin/coroutines/intrinsics/IntrinsicsKt.getCOROUTINE_SUSPENDED:()Ljava/lang/Object;
+       3: astore        16
+       5: aload_0
+       6: getfield      #60                 // Field label:I
+       9: tableswitch   { // 0 to 1
+                     0: 32
+                     1: 110
+               default: 620
+          }
+      32: aload_1
+      33: invokestatic  #66                 // Method kotlin/ResultKt.throwOnFailure:(Ljava/lang/Object;)V
+      36: nop
+      37: aload_0
+      38: getfield      #14                 // Field $context:Landroid/content/Context;
+      41: aload_0
+      42: getfield      #18                 // Field $uri:Landroid/net/Uri;
+      45: invokestatic  #72                 // Method com/google/mlkit/vision/common/InputImage.fromFilePath:(Landroid/content/Context;Landroid/net/Uri;)Lcom/google/mlkit/vision/common/InputImage;
+      48: dup
+      49: ldc           #74                 // String fromFilePath(...)
+      51: invokestatic  #80                 // Method kotlin/jvm/internal/Intrinsics.checkNotNullExpressionValue:(Ljava/lang/Object;Ljava/lang/String;)V
+      54: astore_2
+      55: getstatic     #86                 // Field com/google/mlkit/vision/text/latin/TextRecognizerOptions.DEFAULT_OPTIONS:Lcom/google/mlkit/vision/text/latin/TextRecognizerOptions;
+      58: checkcast     #88                 // class com/google/mlkit/vision/text/TextRecognizerOptionsInterface
+      61: invokestatic  #94                 // Method com/google/mlkit/vision/text/TextRecognition.getClient:(Lcom/google/mlkit/vision/text/TextRecognizerOptionsInterface;)Lcom/google/mlkit/vision/text/TextRecognizer;
+      64: dup
+      65: ldc           #96                 // String getClient(...)
+      67: invokestatic  #80                 // Method kotlin/jvm/internal/Intrinsics.checkNotNullExpressionValue:(Ljava/lang/Object;Ljava/lang/String;)V
+      70: astore_3
+      71: aload_3
+      72: aload_2
+      73: invokeinterface #102,  2          // InterfaceMethod com/google/mlkit/vision/text/TextRecognizer.process:(Lcom/google/mlkit/vision/common/InputImage;)Lcom/google/android/gms/tasks/Task;
+      78: astore        5
+      80: aload         5
+      82: ldc           #104                // String process(...)
+      84: invokestatic  #80                 // Method kotlin/jvm/internal/Intrinsics.checkNotNullExpressionValue:(Ljava/lang/Object;Ljava/lang/String;)V
+      87: aload         5
+      89: aload_0
+      90: checkcast     #106                // class kotlin/coroutines/Continuation
+      93: aload_0
+      94: iconst_1
+      95: putfield      #60                 // Field label:I
+      98: invokestatic  #112                // Method kotlinx/coroutines/tasks/TasksKt.await:(Lcom/google/android/gms/tasks/Task;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+     101: dup
+     102: aload         16
+     104: if_acmpne     116
+     107: aload         16
+     109: areturn
+     110: nop
+     111: aload_1
+     112: invokestatic  #66                 // Method kotlin/ResultKt.throwOnFailure:(Ljava/lang/Object;)V
+     115: aload_1
+     116: checkcast     #114                // class com/google/mlkit/vision/text/Text
+     119: astore        4
+     121: aload         4
+     123: invokevirtual #118                // Method com/google/mlkit/vision/text/Text.getText:()Ljava/lang/String;
+     126: astore        6
+     128: aload         6
+     130: ldc           #120                // String getText(...)
+     132: invokestatic  #80                 // Method kotlin/jvm/internal/Intrinsics.checkNotNullExpressionValue:(Ljava/lang/Object;Ljava/lang/String;)V
+     135: aload         6
+     137: astore        5
+     139: aload         5
+     141: checkcast     #122                // class java/lang/CharSequence
+     144: invokestatic  #128                // Method kotlin/text/StringsKt.lines:(Ljava/lang/CharSequence;)Ljava/util/List;
+     147: checkcast     #130                // class java/lang/Iterable
+     150: astore        7
+     152: iconst_0
+     153: istore        8
+     155: aload         7
+     157: astore        9
+     159: new           #132                // class java/util/ArrayList
+     162: dup
+     163: invokespecial #135                // Method java/util/ArrayList."<init>":()V
+     166: checkcast     #137                // class java/util/Collection
+     169: astore        10
+     171: iconst_0
+     172: istore        11
+     174: aload         9
+     176: invokeinterface #141,  1          // InterfaceMethod java/lang/Iterable.iterator:()Ljava/util/Iterator;
+     181: astore        12
+     183: aload         12
+     185: invokeinterface #147,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     190: ifeq          245
+     193: aload         12
+     195: invokeinterface #150,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     200: astore        13
+     202: aload         13
+     204: checkcast     #152                // class java/lang/String
+     207: astore        14
+     209: iconst_0
+     210: istore        15
+     212: aload         14
+     214: checkcast     #122                // class java/lang/CharSequence
+     217: invokestatic  #156                // Method kotlin/text/StringsKt.isBlank:(Ljava/lang/CharSequence;)Z
+     220: ifne          227
+     223: iconst_1
+     224: goto          228
+     227: iconst_0
+     228: nop
+     229: ifeq          183
+     232: aload         10
+     234: aload         13
+     236: invokeinterface #160,  2          // InterfaceMethod java/util/Collection.add:(Ljava/lang/Object;)Z
+     241: pop
+     242: goto          183
+     245: aload         10
+     247: checkcast     #162                // class java/util/List
+     250: nop
+     251: astore        6
+     253: aload         6
+     255: invokeinterface #165,  1          // InterfaceMethod java/util/List.isEmpty:()Z
+     260: ifeq          299
+     263: aload_0
+     264: getfield      #26                 // Field $isTyping$delegate:Landroidx/compose/runtime/MutableState;
+     267: iconst_0
+     268: invokestatic  #171                // Method com/vidasimple/ui/home/AICoachBottomSheetKt.access$AICoachBottomSheet$lambda$6:(Landroidx/compose/runtime/MutableState;Z)V
+     271: aload_0
+     272: getfield      #22                 // Field $chatMessages:Landroidx/compose/runtime/snapshots/SnapshotStateList;
+     275: new           #173                // class com/vidasimple/ui/home/ChatMessage
+     278: dup
+     279: aconst_null
+     280: ldc           #175                // String No pude leer ningn texto en la imagen. Intenta con una foto ms clara.
+     282: iconst_0
+     283: aconst_null
+     284: aconst_null
+     285: bipush        25
+     287: aconst_null
+     288: invokespecial #178                // Method com/vidasimple/ui/home/ChatMessage."<init>":(Ljava/lang/String;Ljava/lang/String;ZLjava/time/LocalTime;Lcom/vidasimple/ui/home/PendingExpenseData;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+     291: invokevirtual #181                // Method androidx/compose/runtime/snapshots/SnapshotStateList.add:(Ljava/lang/Object;)Z
+     294: pop
+     295: getstatic     #187                // Field kotlin/Unit.INSTANCE:Lkotlin/Unit;
+     298: areturn
+     299: aload         6
+     301: checkcast     #130                // class java/lang/Iterable
+     304: astore        9
+     306: iconst_0
+     307: istore        10
+     309: aload         9
+     311: invokeinterface #141,  1          // InterfaceMethod java/lang/Iterable.iterator:()Ljava/util/Iterator;
+     316: astore        11
+     318: aload         11
+     320: invokeinterface #147,  1          // InterfaceMethod java/util/Iterator.hasNext:()Z
+     325: ifeq          369
+     328: aload         11
+     330: invokeinterface #150,  1          // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     335: astore        12
+     337: aload         12
+     339: checkcast     #152                // class java/lang/String
+     342: astore        13
+     344: iconst_0
+     345: istore        14
+     347: aload         13
+     349: invokevirtual #191                // Method java/lang/String.length:()I
+     352: iconst_3
+     353: if_icmple     360
+     356: iconst_1
+     357: goto          361
+     360: iconst_0
+     361: ifeq          318
+     364: aload         12
+     366: goto          370
+     369: aconst_null
+     370: checkcast     #152                // class java/lang/String
+     373: dup
+     374: ifnull        399
+     377: bipush        15
+     379: invokestatic  #195                // Method kotlin/text/StringsKt.take:(Ljava/lang/String;I)Ljava/lang/String;
+     382: dup
+     383: ifnull        399
+     386: checkcast     #122                // class java/lang/CharSequence
+     389: invokestatic  #199                // Method kotlin/text/StringsKt.trim:(Ljava/lang/CharSequence;)Ljava/lang/CharSequence;
+     392: invokevirtual #204                // Method java/lang/Object.toString:()Ljava/lang/String;
+     395: dup
+     396: ifnonnull     402
+     399: pop
+     400: ldc           #206                // String Tienda
+     402: astore        7
+     404: new           #208                // class kotlin/text/Regex
+     407: dup
+     408: ldc           #210                // String [$]?\\s*(\\d+[,.]\\d{2})
+     410: invokespecial #213                // Method kotlin/text/Regex."<init>":(Ljava/lang/String;)V
+     413: astore        8
+     415: dconst_0
+     416: dstore        9
+     418: aload         8
+     420: aload         5
+     422: checkcast     #122                // class java/lang/CharSequence
+     425: iconst_0
+     426: iconst_2
+     427: aconst_null
+     428: invokestatic  #217                // Method kotlin/text/Regex.findAll$default:(Lkotlin/text/Regex;Ljava/lang/CharSequence;IILjava/lang/Object;)Lkotlin/sequences/Sequence;
+     431: getstatic     #222                // Field com/vidasimple/ui/home/AICoachBottomSheetKt$AICoachBottomSheet$processImageWithMLKit$1$amounts$1.INSTANCE:Lcom/vidasimple/ui/home/AICoachBottomSheetKt$AICoachBottomSheet$processImageWithMLKit$1$amounts$1;
+     434: checkcast     #224                // class kotlin/jvm/functions/Function1
+     437: invokestatic  #230                // Method kotlin/sequences/SequencesKt.mapNotNull:(Lkotlin/sequences/Sequence;Lkotlin/jvm/functions/Function1;)Lkotlin/sequences/Sequence;
+     440: invokestatic  #234                // Method kotlin/sequences/SequencesKt.toList:(Lkotlin/sequences/Sequence;)Ljava/util/List;
+     443: astore        11
+     445: aload         11
+     447: checkcast     #137                // class java/util/Collection
+     450: invokeinterface #235,  1          // InterfaceMethod java/util/Collection.isEmpty:()Z
+     455: ifne          462
+     458: iconst_1
+     459: goto          463
+     462: iconst_0
+     463: ifeq          488
+     466: aload         11
+     468: checkcast     #130                // class java/lang/Iterable
+     471: invokestatic  #241                // Method kotlin/collections/CollectionsKt.maxOrNull:(Ljava/lang/Iterable;)Ljava/lang/Double;
+     474: dup
+     475: ifnull        484
+     478: invokevirtual #247                // Method java/lang/Double.doubleValue:()D
+     481: goto          486
+     484: pop
+     485: dconst_0
+     486: dstore        9
+     488: aload_0
+     489: getfield      #26                 // Field $isTyping$delegate:Landroidx/compose/runtime/MutableState;
+     492: iconst_0
+     493: invokestatic  #171                // Method com/vidasimple/ui/home/AICoachBottomSheetKt.access$AICoachBottomSheet$lambda$6:(Landroidx/compose/runtime/MutableState;Z)V
+     496: dload         9
+     498: dconst_0
+     499: dcmpl
+     500: ifle          550
+     503: aload_0
+     504: getfield      #22                 // Field $chatMessages:Landroidx/compose/runtime/snapshots/SnapshotStateList;
+     507: new           #173                // class com/vidasimple/ui/home/ChatMessage
+     510: dup
+     511: aconst_null
+     512: dload         9
+     514: aload         7
+     516: invokedynamic #259,  0            // InvokeDynamic #0:makeConcatWithConstants:(DLjava/lang/String;)Ljava/lang/String;
+     521: iconst_0
+     522: aconst_null
+     523: new           #261                // class com/vidasimple/ui/home/PendingExpenseData
+     526: dup
+     527: aload         7
+     529: dload         9
+     531: iconst_0
+     532: iconst_4
+     533: aconst_null
+     534: invokespecial #264                // Method com/vidasimple/ui/home/PendingExpenseData."<init>":(Ljava/lang/String;DZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+     537: bipush        9
+     539: aconst_null
+     540: invokespecial #178                // Method com/vidasimple/ui/home/ChatMessage."<init>":(Ljava/lang/String;Ljava/lang/String;ZLjava/time/LocalTime;Lcom/vidasimple/ui/home/PendingExpenseData;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+     543: invokevirtual #181                // Method androidx/compose/runtime/snapshots/SnapshotStateList.add:(Ljava/lang/Object;)Z
+     546: pop
+     547: goto          616
+     550: aload_0
+     551: getfield      #22                 // Field $chatMessages:Landroidx/compose/runtime/snapshots/SnapshotStateList;
+     554: new           #173                // class com/vidasimple/ui/home/ChatMessage
+     557: dup
+     558: aconst_null
+     559: ldc_w         #266                // String Pude leer el texto, pero no logr identificar un monto total vlido. Podras dictrmelo?
+     562: iconst_0
+     563: aconst_null
+     564: aconst_null
+     565: bipush        25
+     567: aconst_null
+     568: invokespecial #178                // Method com/vidasimple/ui/home/ChatMessage."<init>":(Ljava/lang/String;Ljava/lang/String;ZLjava/time/LocalTime;Lcom/vidasimple/ui/home/PendingExpenseData;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+     571: invokevirtual #181                // Method androidx/compose/runtime/snapshots/SnapshotStateList.add:(Ljava/lang/Object;)Z
+     574: pop
+     575: goto          616
+     578: astore_2
+     579: aload_2
+     580: invokevirtual #269                // Method java/lang/Exception.printStackTrace:()V
+     583: aload_0
+     584: getfield      #26                 // Field $isTyping$delegate:Landroidx/compose/runtime/MutableState;
+     587: iconst_0
+     588: invokestatic  #171                // Method com/vidasimple/ui/home/AICoachBottomSheetKt.access$AICoachBottomSheet$lambda$6:(Landroidx/compose/runtime/MutableState;Z)V
+     591: aload_0
+     592: getfield      #22                 // Field $chatMessages:Landroidx/compose/runtime/snapshots/SnapshotStateList;
+     595: new           #173                // class com/vidasimple/ui/home/ChatMessage
+     598: dup
+     599: aconst_null
+     600: ldc_w         #271                // String Hubo un error al procesar la imagen.
+     603: iconst_0
+     604: aconst_null
+     605: aconst_null
+     606: bipush        25
+     608: aconst_null
+     609: invokespecial #178                // Method com/vidasimple/ui/home/ChatMessage."<init>":(Ljava/lang/String;Ljava/lang/String;ZLjava/time/LocalTime;Lcom/vidasimple/ui/home/PendingExpenseData;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+     612: invokevirtual #181                // Method androidx/compose/runtime/snapshots/SnapshotStateList.add:(Ljava/lang/Object;)Z
+     615: pop
+     616: getstatic     #187                // Field kotlin/Unit.INSTANCE:Lkotlin/Unit;
+     619: areturn
+     620: new           #273                // class java/lang/IllegalStateException
+     623: dup
+     624: ldc_w         #275                // String call to \'resume\' before \'invoke\' with coroutine
+     627: invokespecial #276                // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+     630: athrow
+    Exception table:
+       from    to  target type
+          36   101   578   Class java/lang/Exception
+         110   575   578   Class java/lang/Exception
+
+  public final kotlin.coroutines.Continuation<kotlin.Unit> create(java.lang.Object, kotlin.coroutines.Continuation<?>);
+    Code:
+       0: new           #2                  // class com/vidasimple/ui/home/AICoachBottomSheetKt$AICoachBottomSheet$processImageWithMLKit$1
+       3: dup
+       4: aload_0
+       5: getfield      #14                 // Field $context:Landroid/content/Context;
+       8: aload_0
+       9: getfield      #18                 // Field $uri:Landroid/net/Uri;
+      12: aload_0
+      13: getfield      #22                 // Field $chatMessages:Landroidx/compose/runtime/snapshots/SnapshotStateList;
+      16: aload_0
+      17: getfield      #26                 // Field $isTyping$delegate:Landroidx/compose/runtime/MutableState;
+      20: aload_2
+      21: invokespecial #314                // Method "<init>":(Landroid/content/Context;Landroid/net/Uri;Landroidx/compose/runtime/snapshots/SnapshotStateList;Landroidx/compose/runtime/MutableState;Lkotlin/coroutines/Continuation;)V
+      24: checkcast     #106                // class kotlin/coroutines/Continuation
+      27: areturn
+
+  public final java.lang.Object invoke(kotlinx.coroutines.CoroutineScope, kotlin.coroutines.Continuation<? super kotlin.Unit>);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: aload_2
+       3: invokevirtual #320                // Method create:(Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Lkotlin/coroutines/Continuation;
+       6: checkcast     #2                  // class com/vidasimple/ui/home/AICoachBottomSheetKt$AICoachBottomSheet$processImageWithMLKit$1
+       9: getstatic     #187                // Field kotlin/Unit.INSTANCE:Lkotlin/Unit;
+      12: invokevirtual #322                // Method invokeSuspend:(Ljava/lang/Object;)Ljava/lang/Object;
+      15: areturn
+
+  public java.lang.Object invoke(java.lang.Object, java.lang.Object);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: checkcast     #328                // class kotlinx/coroutines/CoroutineScope
+       5: aload_2
+       6: checkcast     #106                // class kotlin/coroutines/Continuation
+       9: invokevirtual #330                // Method invoke:(Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+      12: areturn
+}

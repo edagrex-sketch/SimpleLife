@@ -5,6 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import com.vidasimple.ui.auth.LoginScreen
 import com.vidasimple.ui.auth.RegisterScreen
 import com.vidasimple.ui.home.HomeScreen
@@ -33,7 +35,63 @@ fun VidaSimpleNavGraph(
 
     NavHost(
         navController = navController,
-        startDestination = startDestination
+        startDestination = startDestination,
+        enterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { it },
+                animationSpec = spring(
+                    dampingRatio = 0.85f,
+                    stiffness = 220f
+                )
+            ) + fadeIn(
+                animationSpec = spring(
+                    dampingRatio = 0.85f,
+                    stiffness = 220f
+                )
+            )
+        },
+        exitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { -it / 3 },
+                animationSpec = spring(
+                    dampingRatio = 0.85f,
+                    stiffness = 220f
+                )
+            ) + fadeOut(
+                animationSpec = spring(
+                    dampingRatio = 0.85f,
+                    stiffness = 220f
+                )
+            )
+        },
+        popEnterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { -it / 3 },
+                animationSpec = spring(
+                    dampingRatio = 0.85f,
+                    stiffness = 220f
+                )
+            ) + fadeIn(
+                animationSpec = spring(
+                    dampingRatio = 0.85f,
+                    stiffness = 220f
+                )
+            )
+        },
+        popExitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { it },
+                animationSpec = spring(
+                    dampingRatio = 0.85f,
+                    stiffness = 220f
+                )
+            ) + fadeOut(
+                animationSpec = spring(
+                    dampingRatio = 0.85f,
+                    stiffness = 220f
+                )
+            )
+        }
     ) {
         // Auth
         composable(Screen.Login.route) { 

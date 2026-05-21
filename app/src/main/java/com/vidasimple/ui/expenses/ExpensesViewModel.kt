@@ -61,16 +61,16 @@ class ExpensesViewModel(application: android.app.Application) : androidx.lifecyc
         updateFilteredExpenses()
     }
     
-    init {
-        fetchExpenses()
-    }
-
     var selectedSpaceId = mutableStateOf<String?>(null)
         private set
         
     private var realtimeJob: Job? = null
     private val _isLoading = mutableStateOf(false)
     val isLoading get() = _isLoading.value
+
+    init {
+        fetchExpenses()
+    }
 
     fun fetchExpenses() {
         val userId = SupabaseManager.client.auth.currentUserOrNull()?.id ?: return
@@ -192,7 +192,7 @@ class ExpensesViewModel(application: android.app.Application) : androidx.lifecyc
         fetchExpenses()
     }
 
-    fun addExpense(title: String, amount: Double, category: String, creatorId: String? = null) {
+    fun addExpense(title: String, amount: Double, category: String, creatorId: String? = null, targetSpaceId: String? = selectedSpaceId.value) {
         val userId = creatorId ?: SupabaseManager.client.auth.currentUserOrNull()?.id ?: return
         
         viewModelScope.launch {
@@ -203,7 +203,7 @@ class ExpensesViewModel(application: android.app.Application) : androidx.lifecyc
                     amount = amount,
                     category = category,
                     date = java.time.LocalDate.now().toString(),
-                    spaceId = selectedSpaceId.value
+                    spaceId = targetSpaceId
                 )
                 val insertedExpense = SupabaseManager.client.from("expenses").insert(newExpense) {
                     select()

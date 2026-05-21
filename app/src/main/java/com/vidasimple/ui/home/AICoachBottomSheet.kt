@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -42,6 +43,15 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
+import com.vidasimple.data.ai.AICloudEngine
+import com.vidasimple.utils.TTSManager
+import android.net.Uri
+import androidx.core.content.FileProvider
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import java.io.File
 
 // ═══════════════════════════════════════════════════════════════
 //  AI COACH DATA MODELS
@@ -130,6 +140,14 @@ object AICoachEngine {
         }
     }
 
+    private fun getNextWeekday(dayOfWeek: java.time.DayOfWeek): String {
+        var date = java.time.LocalDate.now()
+        do {
+            date = date.plusDays(1)
+        } while (date.dayOfWeek != dayOfWeek)
+        return date.toString()
+    }
+
     private fun handleTaskCreation(query: String, viewModel: TasksViewModel): CoachResponse {
         val lower = query.lowercase()
         val priority = when {
@@ -157,10 +175,29 @@ object AICoachEngine {
 
         if (title.isEmpty()) title = "Nueva tarea inteligente"
 
-        viewModel.addTask(title, priority)
+        val dueDate: String? = when {
+            lower.contains("mañana") -> java.time.LocalDate.now().plusDays(1).toString()
+            lower.contains("hoy") -> java.time.LocalDate.now().toString()
+            lower.contains("lunes") -> getNextWeekday(java.time.DayOfWeek.MONDAY)
+            lower.contains("martes") -> getNextWeekday(java.time.DayOfWeek.TUESDAY)
+            lower.contains("miércoles") || lower.contains("miercoles") -> getNextWeekday(java.time.DayOfWeek.WEDNESDAY)
+            lower.contains("jueves") -> getNextWeekday(java.time.DayOfWeek.THURSDAY)
+            lower.contains("viernes") -> getNextWeekday(java.time.DayOfWeek.FRIDAY)
+            lower.contains("sábado") || lower.contains("sabado") -> getNextWeekday(java.time.DayOfWeek.SATURDAY)
+            lower.contains("domingo") -> getNextWeekday(java.time.DayOfWeek.SUNDAY)
+            else -> null
+        }
+
+        if (!dueDate.isNullOrBlank()) {
+            viewModel.addTaskWithDate(title, priority, dueDate)
+        } else {
+            viewModel.addTask(title, priority)
+        }
+
+        val dateLabel = if (!dueDate.isNullOrBlank()) " para el *$dueDate*" else ""
 
         return CoachResponse.TaskCreated(
-            message = "¡Listo! He programado tu nueva tarea:\n\n📝 *\"$title\"*\n🎯 Prioridad: *${priority.label}*\n\nLa verás reflejada al instante en tu lista de tareas.",
+            message = "¡Listo! He programado tu nueva tarea$dateLabel:\n\n📝 *\"$title\"*\n🎯 Prioridad: *${priority.label}*\n\nLa verás reflejada al instante en tu lista de tareas.",
             taskTitle = title,
             priority = priority
         )
@@ -296,20 +333,64 @@ object AICoachEngine {
 fun AICoachCard(
     onStartClick: () -> Unit
 ) {
-    Surface(
+    val cardShape = RoundedCornerShape(26.dp)
+
+    // Pulse animation for halo glow
+    val infiniteTransition = rememberInfiniteTransition(label = "halo_pulse")
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.04f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "halo_scale"
+    )
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.15f,
+        targetValue = 0.35f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "halo_alpha"
+    )
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
-            .shadow(12.dp, RoundedCornerShape(26.dp), spotColor = VioletPrimary.copy(alpha = 0.3f)),
-        shape = RoundedCornerShape(26.dp),
-        color = MaterialTheme.colorScheme.surface
+            .padding(horizontal = 20.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
     ) {
+        // Glowing Halo Background
         Box(
             modifier = Modifier
-                .background(Brush.linearGradient(GradientSunset))
-                .clickable { onStartClick() }
-                .padding(24.dp)
+                .matchParentSize()
+                .scale(pulseScale)
+                .shadow(
+                    elevation = 15.dp,
+                    shape = cardShape,
+                    spotColor = VioletPrimary.copy(alpha = pulseAlpha),
+                    ambientColor = Color(0xFFEC4899).copy(alpha = pulseAlpha)
+                )
+                .background(
+                    Brush.linearGradient(listOf(VioletPrimary.copy(alpha = pulseAlpha * 0.4f), Color(0xFFEC4899).copy(alpha = pulseAlpha * 0.4f))),
+                    shape = cardShape
+                )
+        )
+
+        // Card Foreground
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = cardShape,
+            color = MaterialTheme.colorScheme.surface
         ) {
+            Box(
+                modifier = Modifier
+                    .background(Brush.linearGradient(GradientSunset))
+                    .clickable { onStartClick() }
+                    .padding(24.dp)
+            ) {
             // Decorative background items
             Box(
                 modifier = Modifier
@@ -394,6 +475,7 @@ fun AICoachCard(
         }
     }
 }
+}
 
 // ═══════════════════════════════════════════════════════════════
 //  AI COACH BOTTOM SHEET — Conversational Chat Portal
@@ -405,8 +487,23 @@ fun AICoachBottomSheet(
     expensesViewModel: ExpensesViewModel,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
+    var showSettingsDialog by remember { mutableStateOf(false) }
+    var isBriefingSpeaking by remember { mutableStateOf(false) }
+
+    // Initialize TTS
+    LaunchedEffect(Unit) {
+        TTSManager.init(context)
+    }
+
+    // Cleanup TTS on dispose
+    DisposableEffect(Unit) {
+        onDispose {
+            TTSManager.stop()
+        }
+    }
 
     val chatMessages = remember {
         mutableStateListOf(
@@ -437,10 +534,9 @@ fun AICoachBottomSheet(
 
         // Simulate thinking and process response
         scope.launch {
-            delay(1200) // Realistic typing delay for human feel
+            delay(800) // Realistic typing delay for human feel
+            val response = AICloudEngine.processQuery(context, text, tasksViewModel, expensesViewModel)
             isTyping = false
-
-            val response = AICoachEngine.processQuery(text, tasksViewModel, expensesViewModel)
             val responseText = when (response) {
                 is AICoachEngine.CoachResponse.Text -> response.message
                 is AICoachEngine.CoachResponse.TaskCreated -> response.message
@@ -452,6 +548,66 @@ fun AICoachBottomSheet(
             // Autoscroll to bottom again
             delay(100)
             listState.animateScrollToItem(chatMessages.size - 1)
+        }
+    }
+
+    var photoUri by remember { mutableStateOf<Uri?>(null) }
+
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            photoUri?.let { uri ->
+                chatMessages.add(ChatMessage(text = "📸 Analizando ticket...", isUser = false))
+                isTyping = true
+                
+                val image = InputImage.fromFilePath(context, uri)
+                val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+                recognizer.process(image)
+                    .addOnSuccessListener { visionText ->
+                        val rawText = visionText.text
+                        if (rawText.isNotBlank()) {
+                            // Notify user in UI
+                            chatMessages.add(ChatMessage(text = "📸 Analizando contenido del ticket con IA...", isUser = true))
+                            
+                            // Send raw text to AICloudEngine
+                            scope.launch {
+                                isTyping = true
+                                val query = "He escaneado un recibo con este contenido:\n$rawText\nPor favor, analiza este texto, extrae la tienda, el monto total pagado y asígnale una categoría para registrarlo como un gasto."
+                                val response = AICloudEngine.processQuery(context, query, tasksViewModel, expensesViewModel)
+                                isTyping = false
+                                val responseText = when (response) {
+                                    is AICoachEngine.CoachResponse.Text -> response.message
+                                    is AICoachEngine.CoachResponse.TaskCreated -> response.message
+                                    is AICoachEngine.CoachResponse.ExpenseCreated -> response.message
+                                }
+                                chatMessages.add(ChatMessage(text = responseText, isUser = false))
+                                delay(100)
+                                listState.animateScrollToItem(chatMessages.size - 1)
+                            }
+                        } else {
+                            isTyping = false
+                            chatMessages.add(ChatMessage(text = "No logré detectar ningún texto en la imagen. ¿Podrías intentarlo de nuevo?", isUser = false))
+                        }
+                    }
+                    .addOnFailureListener {
+                        isTyping = false
+                        chatMessages.add(ChatMessage(text = "Hubo un error al procesar la imagen.", isUser = false))
+                    }
+            }
+        }
+    }
+
+    fun startCamera() {
+        val cachePath = File(context.cacheDir, "images")
+        cachePath.mkdirs()
+        val file = File(cachePath, "temp_image.jpg")
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+        photoUri = uri
+        try {
+            takePictureLauncher.launch(uri)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -527,6 +683,68 @@ fun AICoachBottomSheet(
                         fontWeight = FontWeight.Bold
                     )
                 }
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Briefing Button
+                IconButton(
+                    onClick = {
+                        if (isBriefingSpeaking) {
+                            TTSManager.stop()
+                            isBriefingSpeaking = false
+                        } else {
+                            scope.launch {
+                                isTyping = true
+                                isBriefingSpeaking = true
+                                val response = AICloudEngine.processQuery(
+                                    context,
+                                    "Dame mi briefing matutino completo con todas mis tareas y gastos",
+                                    tasksViewModel,
+                                    expensesViewModel
+                                )
+                                isTyping = false
+                                val responseText = when (response) {
+                                    is AICoachEngine.CoachResponse.Text -> response.message
+                                    is AICoachEngine.CoachResponse.TaskCreated -> response.message
+                                    is AICoachEngine.CoachResponse.ExpenseCreated -> response.message
+                                }
+                                chatMessages.add(ChatMessage(text = responseText, isUser = false))
+                                delay(100)
+                                listState.animateScrollToItem(chatMessages.size - 1)
+                                TTSManager.speak(responseText) {
+                                    isBriefingSpeaking = false
+                                }
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (isBriefingSpeaking) Brush.linearGradient(GradientSunset)
+                            else Brush.linearGradient(GradientViolet)
+                        )
+                ) {
+                    Icon(
+                        imageVector = if (isBriefingSpeaking) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
+                        contentDescription = if (isBriefingSpeaking) "Detener" else "Briefing en audio",
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(4.dp))
+
+                IconButton(onClick = { showSettingsDialog = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Ajustes de IA",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            if (showSettingsDialog) {
+                AISettingsDialog(onDismiss = { showSettingsDialog = false })
             }
 
             Divider(
@@ -629,6 +847,23 @@ fun AICoachBottomSheet(
                             }
                         )
                     )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    IconButton(
+                        onClick = { startCamera() },
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CameraAlt,
+                            contentDescription = "Cámara",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
 
                     Spacer(modifier = Modifier.width(8.dp))
 
@@ -772,4 +1007,130 @@ fun TypingIndicatorBubble() {
         Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(VioletPrimary).graphicsLayer(scaleX = dot2Scale, scaleY = dot2Scale))
         Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(VioletPrimary).graphicsLayer(scaleX = dot3Scale, scaleY = dot3Scale))
     }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  AI SETTINGS DIALOG
+// ═══════════════════════════════════════════════════════════════
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AISettingsDialog(
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    var selectedProvider by remember { mutableStateOf(AICloudEngine.getProvider(context)) }
+    var apiKey by remember { mutableStateOf(AICloudEngine.getApiKey(context)) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Psychology,
+                    contentDescription = null,
+                    tint = VioletPrimary,
+                    modifier = Modifier.size(28.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Ajustes de IA 🧠",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
+                )
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text(
+                    text = "Configura tu propia clave de API de Groq o Gemini para habilitar el procesamiento inteligente.",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                // Provider Selector
+                Column {
+                    Text(
+                        text = "Proveedor de IA:",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        listOf("groq" to "Groq (Llama 3)", "gemini" to "Gemini (Google)").forEach { (value, label) ->
+                            val isSelected = selectedProvider == value
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (isSelected) VioletPrimary else MaterialTheme.colorScheme.surfaceVariant,
+                                border = if (isSelected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable { selectedProvider = value }
+                            ) {
+                                Text(
+                                    text = label,
+                                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(vertical = 10.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // API Key Text Field
+                Column {
+                    Text(
+                        text = "API Key:",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = apiKey,
+                        onValueChange = { apiKey = it },
+                        placeholder = { Text("gsk_... o AIzaSy...") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = VioletPrimary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Si dejas este campo en blanco, se utilizará la clave de respaldo preconfigurada.",
+                        fontSize = 10.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    AICloudEngine.saveSettings(context, selectedProvider, apiKey.trim())
+                    onDismiss()
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = VioletPrimary),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Guardar", color = Color.White)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(24.dp)
+    )
 }

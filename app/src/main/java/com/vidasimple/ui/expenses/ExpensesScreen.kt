@@ -3,6 +3,7 @@ package com.vidasimple.ui.expenses
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.vidasimple.designsystem.*
@@ -60,7 +62,7 @@ fun ExpensesScreen(
     // Toast feedback
     LaunchedEffect(spacesViewModel.message) {
         spacesViewModel.message?.let { msg ->
-            android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
+            com.vidasimple.PremiumToastManager.show(msg)
             spacesViewModel.clearMessage()
         }
     }
@@ -74,10 +76,9 @@ fun ExpensesScreen(
             Box(
                 modifier = Modifier
                     .padding(bottom = innerPadding.calculateBottomPadding() + 16.dp)
-                    .shadow(16.dp, RoundedCornerShape(20.dp), spotColor = SuccessGreen.copy(alpha = 0.4f))
+                    .bounceClick { showAddBottomSheet = true }
                     .clip(RoundedCornerShape(20.dp))
                     .background(Brush.linearGradient(GradientGreen))
-                    .clickable { showAddBottomSheet = true }
                     .padding(horizontal = 20.dp, vertical = 16.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -144,7 +145,7 @@ fun ExpensesScreen(
                                 category = "Otros",
                                 creatorId = debtor.id
                             )
-                            android.widget.Toast.makeText(context, "Liquidación registrada", android.widget.Toast.LENGTH_SHORT).show()
+                            com.vidasimple.PremiumToastManager.show("Liquidación registrada")
                         }
                     )
                 }
@@ -261,6 +262,68 @@ fun ExpensesScreen(
 }
 
 // ═══════════════════════════════════════════════════════════
+//  ODOMETER (Number Ticker) — Vertical rolling text
+// ═══════════════════════════════════════════════════════════
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+fun OdometerText(
+    amount: Double,
+    modifier: Modifier = Modifier,
+    color: Color = Color.White,
+    fontSize: TextUnit = 40.sp,
+    fontWeight: FontWeight = FontWeight.Black
+) {
+    val amountString = String.format("%.2f", amount)
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "$",
+            color = color,
+            fontSize = fontSize,
+            fontWeight = fontWeight,
+            letterSpacing = (-1).sp
+        )
+        amountString.forEachIndexed { index, char ->
+            if (char.isDigit()) {
+                AnimatedContent(
+                    targetState = char,
+                    transitionSpec = {
+                        if (targetState > initialState) {
+                            (slideInVertically { height -> -height } + fadeIn()) togetherWith
+                                    (slideOutVertically { height -> height } + fadeOut())
+                        } else {
+                            (slideInVertically { height -> height } + fadeIn()) togetherWith
+                                    (slideOutVertically { height -> -height } + fadeOut())
+                        }.using(
+                            SizeTransform(clip = false)
+                        )
+                    },
+                    label = "odometer_digit_$index"
+                ) { digit ->
+                    Text(
+                        text = digit.toString(),
+                        color = color,
+                        fontSize = fontSize,
+                        fontWeight = fontWeight,
+                        letterSpacing = (-1).sp
+                    )
+                }
+            } else {
+                Text(
+                    text = char.toString(),
+                    color = color,
+                    fontSize = fontSize,
+                    fontWeight = fontWeight,
+                    letterSpacing = (-1).sp
+                )
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════
 //  HERO HEADER — Financial dashboard
 // ═══════════════════════════════════════════════════════════
 @Composable
@@ -344,12 +407,11 @@ fun ExpensesHeroHeader(
 
             // Amount display
             Row(verticalAlignment = Alignment.Bottom) {
-                Text(
-                    text = "$${String.format("%.2f", totalSpent)}",
+                OdometerText(
+                    amount = totalSpent,
                     fontSize = 40.sp,
                     fontWeight = FontWeight.Black,
-                    color = Color.White,
-                    letterSpacing = (-1).sp
+                    color = Color.White
                 )
                 Text(
                     text = " / $${limit.toInt()}",
@@ -363,8 +425,7 @@ fun ExpensesHeroHeader(
                     shape = RoundedCornerShape(8.dp),
                     color = Color.White.copy(alpha = 0.15f),
                     modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onEditClick() }
+                        .bounceClick { onEditClick() }
                 ) {
                     Icon(
                         Icons.Default.Edit,
@@ -468,12 +529,11 @@ fun MonthSelector(
                 Surface(
                     modifier = Modifier
                         .scale(scale)
-                        .clip(RoundedCornerShape(14.dp))
-                        .clickable { onMonthSelected(monthNumber) },
-                    shape = RoundedCornerShape(14.dp),
+                        .bounceClick { onMonthSelected(monthNumber) },
+                    shape = MaterialTheme.shapes.medium,
                     color = if (isSelected) SuccessGreen else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
                     border = if (isSelected) null else androidx.compose.foundation.BorderStroke(
-                        1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
+                        1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
                     )
                 ) {
                     Text(
@@ -508,6 +568,19 @@ fun InteractiveDonutChart(
 
     var activeIndex by remember { mutableStateOf(-1) }
 
+    // Spring animation for each category segment slice
+    val activeScales = byCategory.mapIndexed { index, _ ->
+        val isSelected = index == activeIndex
+        animateFloatAsState(
+            targetValue = if (isSelected) 1.1f else 1.0f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            ),
+            label = "donutScale_$index"
+        )
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -517,10 +590,7 @@ fun InteractiveDonutChart(
         androidx.compose.foundation.Canvas(
             modifier = Modifier
                 .size(200.dp)
-                .clickable(
-                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-                    indication = null
-                ) {
+                .bounceClick {
                     activeIndex = (activeIndex + 2) % (byCategory.size + 1) - 1
                 }
         ) {
@@ -532,11 +602,11 @@ fun InteractiveDonutChart(
             var startAngle = -90f
             byCategory.forEachIndexed { index, (cat, amt) ->
                 val sweepAngle = ((amt / total) * 360f).toFloat()
-                val isSelected = index == activeIndex
+                val selectionFactor = activeScales[index].value
                 val color = getCategoryInfo(cat).color
 
-                val animatedStroke = if (isSelected) strokeWidth * 1.25f else strokeWidth
-                val animatedRadius = if (isSelected) radius * 1.05f else radius
+                val animatedStroke = strokeWidth * (1f + (selectionFactor - 1f) * 1.5f)
+                val animatedRadius = radius * selectionFactor
 
                 drawArc(
                     color = color,
@@ -656,8 +726,9 @@ fun CollaborativeSplitter(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 10.dp)
-            .shadow(6.dp, RoundedCornerShape(24.dp), spotColor = Color(0xFF6366F1).copy(alpha = 0.2f)),
-        shape = RoundedCornerShape(24.dp),
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.08f), MaterialTheme.shapes.large)
+            .shadow(12.dp, MaterialTheme.shapes.large, spotColor = Color(0xFF6366F1).copy(alpha = 0.15f)),
+        shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
@@ -796,10 +867,9 @@ fun CollaborativeSplitter(
                             )
                             Box(
                                 modifier = Modifier
-                                    .shadow(2.dp, RoundedCornerShape(10.dp))
+                                    .bounceClick { onSettleDebt(debtor, creditor, amount) }
                                     .clip(RoundedCornerShape(10.dp))
                                     .background(Brush.linearGradient(listOf(Color(0xFF6366F1), Color(0xFF4F46E5))))
-                                    .clickable { onSettleDebt(debtor, creditor, amount) }
                                     .padding(horizontal = 10.dp, vertical = 6.dp)
                             ) {
                                 Text("Saldar", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
@@ -834,8 +904,9 @@ fun SavingsGoalCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 10.dp)
-            .shadow(6.dp, RoundedCornerShape(24.dp), spotColor = SuccessGreen.copy(alpha = 0.2f)),
-        shape = RoundedCornerShape(24.dp),
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.08f), MaterialTheme.shapes.large)
+            .shadow(12.dp, MaterialTheme.shapes.large, spotColor = SuccessGreen.copy(alpha = 0.15f)),
+        shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
@@ -862,7 +933,7 @@ fun SavingsGoalCard(
                 Surface(
                     shape = RoundedCornerShape(8.dp),
                     color = SuccessGreen.copy(alpha = 0.12f),
-                    modifier = Modifier.clickable { showEditGoalDialog = true }
+                    modifier = Modifier.bounceClick { showEditGoalDialog = true }
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
@@ -886,7 +957,7 @@ fun SavingsGoalCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
+                        .clip(MaterialTheme.shapes.medium)
                         .background(SuccessGreen.copy(alpha = 0.08f))
                         .padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -917,7 +988,7 @@ fun SavingsGoalCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
+                        .clip(MaterialTheme.shapes.medium)
                         .background(ErrorRed.copy(alpha = 0.08f))
                         .padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -952,11 +1023,12 @@ fun SavingsGoalCard(
         var goalText by remember { mutableStateOf(savingsGoal.toInt().toString()) }
         Dialog(onDismissRequest = { showEditGoalDialog = false }) {
             Surface(
-                shape = RoundedCornerShape(28.dp),
+                shape = MaterialTheme.shapes.large,
                 color = MaterialTheme.colorScheme.surface,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .shadow(16.dp, RoundedCornerShape(28.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f), MaterialTheme.shapes.large)
+                    .shadow(20.dp, MaterialTheme.shapes.large, spotColor = SuccessGreen.copy(alpha = 0.2f))
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp),
@@ -974,7 +1046,7 @@ fun SavingsGoalCard(
                         onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) goalText = it },
                         label = { Text("Meta de Ahorro") },
                         prefix = { Text("$", fontWeight = FontWeight.Bold) },
-                        shape = RoundedCornerShape(16.dp),
+                        shape = MaterialTheme.shapes.medium,
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = SuccessGreen,
@@ -985,18 +1057,20 @@ fun SavingsGoalCard(
                     Spacer(modifier = Modifier.height(20.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         OutlinedButton(
-                            onClick = { showEditGoalDialog = false },
-                            modifier = Modifier.weight(1f)
+                            onClick = {},
+                            modifier = Modifier.weight(1f).bounceClick { showEditGoalDialog = false },
+                            shape = MaterialTheme.shapes.medium
                         ) {
                             Text("Cancelar")
                         }
                         Button(
-                            onClick = {
+                            onClick = {},
+                            colors = ButtonDefaults.buttonColors(containerColor = SuccessGreen),
+                            modifier = Modifier.weight(1f).bounceClick {
                                 onGoalChange(goalText.toDoubleOrNull() ?: 100.0)
                                 showEditGoalDialog = false
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = SuccessGreen),
-                            modifier = Modifier.weight(1f)
+                            shape = MaterialTheme.shapes.medium
                         ) {
                             Text("Guardar", color = Color.White)
                         }
@@ -1032,8 +1106,9 @@ fun CategoryBreakdown(expenses: List<Expense>) {
                 val info = getCategoryInfo(category)
                 Surface(
                     modifier = Modifier
-                        .shadow(4.dp, RoundedCornerShape(18.dp), spotColor = info.color.copy(alpha = 0.2f)),
-                    shape = RoundedCornerShape(18.dp),
+                        .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.08f), MaterialTheme.shapes.medium)
+                        .shadow(6.dp, MaterialTheme.shapes.medium, spotColor = info.color.copy(alpha = 0.15f)),
+                    shape = MaterialTheme.shapes.medium,
                     color = MaterialTheme.colorScheme.surface
                 ) {
                     Column(
@@ -1088,8 +1163,9 @@ fun AnimatedExpenseItem(expense: Expense, index: Int) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 5.dp)
-                .shadow(4.dp, RoundedCornerShape(20.dp), spotColor = categoryInfo.color.copy(alpha = 0.1f)),
-            shape = RoundedCornerShape(20.dp),
+                .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.05f), MaterialTheme.shapes.medium)
+                .shadow(4.dp, MaterialTheme.shapes.medium, spotColor = categoryInfo.color.copy(alpha = 0.08f)),
+            shape = MaterialTheme.shapes.medium,
             color = MaterialTheme.colorScheme.surface
         ) {
             Row(
@@ -1197,11 +1273,12 @@ fun PremiumEditLimitDialog(currentLimit: Double, onDismiss: () -> Unit, onConfir
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(32.dp),
+            shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surface,
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(20.dp, RoundedCornerShape(32.dp), spotColor = SuccessGreen.copy(alpha = 0.2f))
+                .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f), MaterialTheme.shapes.large)
+                .shadow(24.dp, MaterialTheme.shapes.large, spotColor = SuccessGreen.copy(alpha = 0.2f))
         ) {
             Column(
                 modifier = Modifier.padding(28.dp),
@@ -1237,7 +1314,7 @@ fun PremiumEditLimitDialog(currentLimit: Double, onDismiss: () -> Unit, onConfir
                     onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) limitText = it },
                     label = { Text("Límite Mensual") },
                     prefix = { Text("$", fontWeight = FontWeight.Bold) },
-                    shape = RoundedCornerShape(18.dp),
+                    shape = MaterialTheme.shapes.medium,
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor   = SuccessGreen,
@@ -1254,21 +1331,21 @@ fun PremiumEditLimitDialog(currentLimit: Double, onDismiss: () -> Unit, onConfir
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.weight(1f).height(52.dp),
-                        shape = RoundedCornerShape(16.dp),
+                        onClick = {},
+                        modifier = Modifier.weight(1f).height(52.dp).bounceClick { onDismiss() },
+                        shape = MaterialTheme.shapes.medium,
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
                     ) {
                         Text("Cancelar", fontWeight = FontWeight.Bold)
                     }
                     Button(
-                        onClick = {
+                        onClick = {},
+                        modifier = Modifier.weight(1f).height(52.dp).bounceClick {
                             val newLimit = limitText.toDoubleOrNull() ?: 500.0
                             onConfirm(newLimit)
                         },
-                        modifier = Modifier.weight(1f).height(52.dp),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = MaterialTheme.shapes.medium,
                         colors = ButtonDefaults.buttonColors(containerColor = SuccessGreen)
                     ) {
                         Text("Guardar", fontWeight = FontWeight.Bold, color = Color.White)

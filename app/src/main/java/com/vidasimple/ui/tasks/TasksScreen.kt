@@ -34,6 +34,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.roundToInt
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.BorderStroke
 import com.vidasimple.designsystem.*
 import com.vidasimple.domain.model.Task
 import com.vidasimple.domain.model.TaskPriority
@@ -522,39 +528,138 @@ fun AdvancedTaskItem(
     ) {
         val isDone = task.isDone == true
         val priorityColor = task.priority.getColor()
-        val interactionSource = remember { MutableInteractionSource() }
+        val cardShape = RoundedCornerShape(22.dp)
 
-        var pressed by remember { mutableStateOf(false) }
-        val scale by animateFloatAsState(
-            targetValue = if (pressed) 0.97f else 1f,
-            animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
-            label = "itemScale"
-        )
+        val swipeOffset = remember { Animatable(0f) }
+        val coroutineScope = rememberCoroutineScope()
+        var actionTriggered by remember { mutableStateOf(false) }
 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 5.dp)
-                .scale(scale)
+                .clip(cardShape)
         ) {
+            val offsetVal = swipeOffset.value
+            val isSwipingRight = offsetVal > 0f
+            val isSwipingLeft = offsetVal < 0f
+
+            // Swipe background layers
+            if (isSwipingRight) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Brush.horizontalGradient(listOf(SuccessGreen, Color(0xFF10B981)))),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    val iconScale = (offsetVal / 180f).coerceIn(0.5f, 1.3f)
+                    Row(
+                        modifier = Modifier.padding(start = 24.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .scale(iconScale)
+                        )
+                        if (offsetVal > 150f) {
+                            Text(
+                                text = if (isDone) "Reabrir" else "Completar",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                }
+            } else if (isSwipingLeft) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Brush.horizontalGradient(listOf(Color(0xFFF43F5E), ErrorRed))),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    val iconScale = (-offsetVal / 180f).coerceIn(0.5f, 1.3f)
+                    Row(
+                        modifier = Modifier.padding(end = 24.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (-offsetVal > 150f) {
+                            Text(
+                                text = "Eliminar",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .scale(iconScale)
+                        )
+                    }
+                }
+            }
+
+            // Task item foreground surface
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .offset { IntOffset(offsetVal.roundToInt(), 0) }
                     .shadow(
                         elevation    = if (isDone) 1.dp else 5.dp,
-                        shape        = RoundedCornerShape(22.dp),
+                        shape        = cardShape,
                         spotColor    = priorityColor.copy(alpha = 0.12f)
                     )
-                    .clickable(
-                        interactionSource = interactionSource,
-                        indication        = null,
-                        onClick           = {
-                            pressed = true
-                            onComplete()
-                            pressed = false
-                        }
-                    ),
-                shape = RoundedCornerShape(22.dp),
+                    .border(
+                        width = 1.dp,
+                        color = if (isDone) Color.Transparent else MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
+                        shape = cardShape
+                    )
+                    .pointerInput(task.id) {
+                        detectHorizontalDragGestures(
+                            onDragEnd = {
+                                val current = swipeOffset.value
+                                coroutineScope.launch {
+                                    if (current > 200f && !actionTriggered) {
+                                        actionTriggered = true
+                                        onComplete()
+                                        swipeOffset.animateTo(0f, spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium))
+                                        actionTriggered = false
+                                    } else if (current < -200f && !actionTriggered) {
+                                        actionTriggered = true
+                                        onDelete()
+                                        swipeOffset.animateTo(0f, spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium))
+                                        actionTriggered = false
+                                    } else {
+                                        swipeOffset.animateTo(0f, spring(dampingRatio = 0.75f, stiffness = Spring.StiffnessMedium))
+                                    }
+                                }
+                            },
+                            onHorizontalDrag = { change, dragAmount ->
+                                change.consume()
+                                coroutineScope.launch {
+                                    val current = swipeOffset.value
+                                    val target = current + dragAmount
+                                    val rubberBanded = if (target > 0) {
+                                        if (target > 300f) 300f + (target - 300f) * 0.25f else target
+                                    } else {
+                                        if (target < -300f) -300f + (target + 300f) * 0.25f else target
+                                    }
+                                    swipeOffset.snapTo(rubberBanded)
+                                }
+                            }
+                        )
+                    },
+                shape = cardShape,
                 color = if (isDone)
                     MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
                 else
@@ -591,7 +696,8 @@ fun AdvancedTaskItem(
                                 2.dp,
                                 if (isDone) VioletPrimary else priorityColor.copy(alpha = 0.8f),
                                 CircleShape
-                            ),
+                            )
+                            .bounceClick { onComplete() },
                         contentAlignment = Alignment.Center
                     ) {
                         if (isDone) {
@@ -690,11 +796,22 @@ fun AdvancedTaskItem(
                             }
                             
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                "· ${task.priority.label}",
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                            )
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = if (isDone) MaterialTheme.colorScheme.outline.copy(alpha = 0.08f) else priorityColor.copy(alpha = 0.12f),
+                                border = BorderStroke(
+                                    width = 0.5.dp,
+                                    color = if (isDone) MaterialTheme.colorScheme.outline.copy(alpha = 0.15f) else priorityColor.copy(alpha = 0.25f)
+                                )
+                            ) {
+                                Text(
+                                    text = task.priority.label,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isDone) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else priorityColor,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
                             
                             // Show who completed the task if it's a shared group
                             if (isDone && task.completedById != null) {
@@ -721,11 +838,11 @@ fun AdvancedTaskItem(
                                                 fontSize = 9.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = SuccessGreen
-                                             )
-                                         }
-                                     }
-                                 }
-                             }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -752,13 +869,15 @@ fun AdvancedTaskItem(
 // ═══════════════════════════════════════════════════════════
 @Composable
 fun CompletedToggleHeader(count: Int, expanded: Boolean, onClick: () -> Unit) {
+    val cardShape = MaterialTheme.shapes.medium
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-            .clickable { onClick() }
+            .clip(cardShape)
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.08f), cardShape)
+            .bounceClick { onClick() }
             .padding(horizontal = 20.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -860,8 +979,8 @@ fun VoiceTaskBottomSheet(
             voiceHelper.stopListening()
             onDismiss()
         },
-        dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFFE2E8F0)) },
-        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+        dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)) },
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         containerColor = MaterialTheme.colorScheme.surface
     ) {
         Column(
@@ -923,7 +1042,7 @@ fun VoiceTaskBottomSheet(
                 
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(24.dp),
+                    shape = MaterialTheme.shapes.large,
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
@@ -936,7 +1055,7 @@ fun VoiceTaskBottomSheet(
                             fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                         )
                         
-                        Divider(modifier = Modifier.padding(vertical = 16.dp), color = Color.LightGray.copy(alpha = 0.2f))
+                        Divider(modifier = Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f), thickness = 1.dp)
                         
                         // Parsed details
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -966,28 +1085,41 @@ fun VoiceTaskBottomSheet(
                 Spacer(modifier = Modifier.height(28.dp))
 
                 Button(
-                    onClick = { onTaskParsed(parsed.title, parsed.priority, parsed.dueDate) },
+                    onClick = {},
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(18.dp),
+                        .height(54.dp)
+                        .bounceClick { onTaskParsed(parsed.title, parsed.priority, parsed.dueDate) },
+                    shape = MaterialTheme.shapes.medium,
                     colors = ButtonDefaults.buttonColors(containerColor = TealAccent)
                 ) {
-                    Text("Confirmar y Crear", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Confirmar y Crear", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
                 }
                 
-                TextButton(onClick = { 
-                    transcript = ""
-                    voiceHelper.startListening() 
-                }) {
+                TextButton(
+                    onClick = { 
+                        transcript = ""
+                        voiceHelper.startListening() 
+                    },
+                    modifier = Modifier.bounceClick {
+                        transcript = ""
+                        voiceHelper.startListening()
+                    }
+                ) {
                     Text("Intentar de nuevo", color = Color.Gray)
                 }
             } else if (error != null) {
                 Text(error!!, color = Color.Red, fontSize = 14.sp)
-                TextButton(onClick = { 
-                    error = null
-                    voiceHelper.startListening() 
-                }) {
+                TextButton(
+                    onClick = { 
+                        error = null
+                        voiceHelper.startListening() 
+                    },
+                    modifier = Modifier.bounceClick {
+                        error = null
+                        voiceHelper.startListening()
+                    }
+                ) {
                     Text("Reintentar")
                 }
             } else {

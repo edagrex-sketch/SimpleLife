@@ -47,7 +47,8 @@ fun HomeScreen(
     innerPadding: PaddingValues,
     tasksViewModel: TasksViewModel = viewModel(),
     profileViewModel: ProfileViewModel = viewModel(),
-    expensesViewModel: ExpensesViewModel = viewModel()
+    expensesViewModel: ExpensesViewModel = viewModel(),
+    spacesViewModel: com.vidasimple.ui.spaces.SpacesViewModel = viewModel()
 ) {
     val background   = MaterialTheme.colorScheme.background
     val isDark       = background == DarkBg
@@ -174,9 +175,9 @@ fun HeroHeader(name: String, streak: Int, isDark: Boolean) {
                 .background(
                     Brush.linearGradient(
                         colors = listOf(
-                            Color(0xFF6D28D9),
-                            Color(0xFF7C3AED),
-                            Color(0xFF4F46E5)
+                            VioletDark,
+                            VioletPrimary,
+                            VioletLight
                         )
                     )
                 )
@@ -225,7 +226,7 @@ fun HeroHeader(name: String, streak: Int, isDark: Boolean) {
             val today = LocalDate.now()
             val fmt   = DateTimeFormatter.ofPattern("EEEE, d MMM", Locale("es", "ES"))
             Surface(
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(12.dp),
                 color = Color.White.copy(alpha = 0.15f)
             ) {
                 Text(
@@ -241,10 +242,8 @@ fun HeroHeader(name: String, streak: Int, isDark: Boolean) {
 
             Text(
                 text       = "¡Hola, ${name.split(" ").first()}!",
-                fontSize   = 30.sp,
-                fontWeight = FontWeight.Black,
-                color      = Color.White,
-                letterSpacing = (-0.5).sp
+                style      = MaterialTheme.typography.displayMedium,
+                color      = Color.White
             )
             Text(
                 text     = "Estás construyendo algo grandioso. 🚀",
@@ -260,9 +259,9 @@ fun HeroHeader(name: String, streak: Int, isDark: Boolean) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(Color(0xFFF97316).copy(alpha = 0.25f))
-                        .border(1.dp, Color(0xFFF97316).copy(alpha = 0.4f), RoundedCornerShape(20.dp))
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFF97316).copy(alpha = 0.2f))
+                        .border(1.dp, Color(0xFFF97316).copy(alpha = 0.35f), RoundedCornerShape(12.dp))
                         .padding(horizontal = 14.dp, vertical = 6.dp)
                 ) {
                     Icon(
@@ -323,11 +322,14 @@ fun TasksStatCard(pending: Int, total: Int, modifier: Modifier = Modifier) {
         animationSpec = tween(800, easing = FastOutSlowInEasing),
         label = "taskProgress"
     )
+    val cardShape = MaterialTheme.shapes.large
 
     Surface(
         modifier  = modifier
-            .shadow(8.dp, RoundedCornerShape(24.dp), spotColor = VioletPrimary.copy(alpha = 0.15f)),
-        shape     = RoundedCornerShape(24.dp),
+            .shadow(6.dp, cardShape, spotColor = VioletPrimary.copy(alpha = 0.12f))
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f), cardShape)
+            .bounceClick { /* Interactividad sutil */ },
+        shape     = cardShape,
         color     = MaterialTheme.colorScheme.surface
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
@@ -339,7 +341,7 @@ fun TasksStatCard(pending: Int, total: Int, modifier: Modifier = Modifier) {
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(10.dp))
                         .background(Brush.linearGradient(GradientViolet)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -349,7 +351,7 @@ fun TasksStatCard(pending: Int, total: Int, modifier: Modifier = Modifier) {
                     text = "${(progress * 100).toInt()}%",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    color = VioletPrimary
+                    color = VioletLight
                 )
             }
 
@@ -374,7 +376,7 @@ fun TasksStatCard(pending: Int, total: Int, modifier: Modifier = Modifier) {
                 progress     = animatedProgress,
                 modifier     = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
                 color        = VioletPrimary,
-                trackColor   = MaterialTheme.colorScheme.surfaceVariant,
+                trackColor   = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                 strokeCap    = StrokeCap.Round
             )
         }
@@ -386,6 +388,7 @@ fun ExpensesStatCard(spent: Double, limit: Double, modifier: Modifier = Modifier
     val progress = (spent / limit).coerceIn(0.0, 1.0).toFloat()
     val isOver   = progress >= 0.9f
     val color    = if (isOver) ErrorRed else SuccessGreen
+    val cardShape = MaterialTheme.shapes.large
 
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
@@ -395,8 +398,10 @@ fun ExpensesStatCard(spent: Double, limit: Double, modifier: Modifier = Modifier
 
     Surface(
         modifier  = modifier
-            .shadow(8.dp, RoundedCornerShape(24.dp), spotColor = color.copy(alpha = 0.15f)),
-        shape     = RoundedCornerShape(24.dp),
+            .shadow(6.dp, cardShape, spotColor = color.copy(alpha = 0.12f))
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f), cardShape)
+            .bounceClick { /* Interactividad sutil */ },
+        shape     = cardShape,
         color     = MaterialTheme.colorScheme.surface
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
@@ -408,7 +413,7 @@ fun ExpensesStatCard(spent: Double, limit: Double, modifier: Modifier = Modifier
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(10.dp))
                         .background(Brush.linearGradient(GradientGreen)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -451,7 +456,7 @@ fun ExpensesStatCard(spent: Double, limit: Double, modifier: Modifier = Modifier
                 progress   = animatedProgress,
                 modifier   = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
                 color      = color,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                 strokeCap  = StrokeCap.Round
             )
         }
@@ -510,37 +515,26 @@ fun AnimatedTaskCard(task: Task, index: Int, onToggle: () -> Unit) {
         ) { it / 2 } + fadeIn(tween(400, delayMillis = index * 80))
     ) {
         val isDone = task.isDone == true
-        val interactionSource = remember { MutableInteractionSource() }
-
-        var pressed by remember { mutableStateOf(false) }
-        val scale by animateFloatAsState(
-            targetValue = if (pressed) 0.97f else 1f,
-            animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
-            label = "taskScale"
-        )
+        val cardShape = MaterialTheme.shapes.medium // Standardized 12.dp
 
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 5.dp)
-                .scale(scale)
                 .shadow(
-                    elevation    = if (isDone) 2.dp else 6.dp,
-                    shape        = RoundedCornerShape(22.dp),
-                    spotColor    = VioletPrimary.copy(alpha = 0.1f),
-                    ambientColor = VioletPrimary.copy(alpha = 0.05f)
+                    elevation    = if (isDone) 1.dp else 4.dp,
+                    shape        = cardShape,
+                    spotColor    = VioletPrimary.copy(alpha = 0.08f)
                 )
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication        = null
-                ) {
-                    pressed = true
-                    onToggle()
-                    pressed = false
-                },
-            shape = RoundedCornerShape(22.dp),
+                .border(
+                    width = 1.dp,
+                    color = if (isDone) Color.Transparent else MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
+                    shape = cardShape
+                )
+                .bounceClick { onToggle() },
+            shape = cardShape,
             color = if (isDone)
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
             else
                 MaterialTheme.colorScheme.surface
         ) {
@@ -553,7 +547,7 @@ fun AnimatedTaskCard(task: Task, index: Int, onToggle: () -> Unit) {
 
                 Box(
                     modifier = Modifier
-                        .size(28.dp)
+                        .size(24.dp)
                         .clip(CircleShape)
                         .background(
                             if (isDone) Brush.linearGradient(GradientViolet)
@@ -564,13 +558,13 @@ fun AnimatedTaskCard(task: Task, index: Int, onToggle: () -> Unit) {
                             brush = if (isDone)
                                 Brush.linearGradient(GradientViolet)
                             else
-                                Brush.linearGradient(listOf(priorityColor, priorityColor)),
+                                Brush.linearGradient(listOf(priorityColor.copy(alpha = 0.8f), priorityColor.copy(alpha = 0.8f))),
                             shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     if (isDone) {
-                        Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(14.dp))
                     }
                 }
 
@@ -610,12 +604,12 @@ fun AnimatedTaskCard(task: Task, index: Int, onToggle: () -> Unit) {
 
                 // Priority badge
                 Surface(
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(6.dp),
                     color = priorityColor.copy(alpha = 0.12f)
                 ) {
                     Text(
                         text = task.priority.label,
-                        fontSize = 11.sp,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         color = priorityColor,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -631,12 +625,14 @@ fun AnimatedTaskCard(task: Task, index: Int, onToggle: () -> Unit) {
 // ═══════════════════════════════════════════════════════════
 @Composable
 fun AllDoneCard() {
+    val cardShape = MaterialTheme.shapes.large
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .shadow(6.dp, RoundedCornerShape(24.dp), spotColor = SuccessGreen.copy(alpha = 0.2f)),
-        shape = RoundedCornerShape(24.dp),
+            .shadow(4.dp, cardShape, spotColor = SuccessGreen.copy(alpha = 0.12f))
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f), cardShape),
+        shape = cardShape,
         color = MaterialTheme.colorScheme.surface
     ) {
         Row(
@@ -645,12 +641,12 @@ fun AllDoneCard() {
         ) {
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(52.dp)
                     .clip(CircleShape)
                     .background(Brush.linearGradient(GradientGreen)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.DoneAll, null, tint = Color.White, modifier = Modifier.size(28.dp))
+                Icon(Icons.Default.DoneAll, null, tint = Color.White, modifier = Modifier.size(26.dp))
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column {
@@ -677,13 +673,14 @@ fun DailyQuoteCard() {
         "\"Tu futuro es creado por lo que haces hoy.\""
     )
     val quote = remember { quotes.random() }
+    val cardShape = MaterialTheme.shapes.large
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(Brush.linearGradient(listOf(Color(0xFF7C3AED), Color(0xFF4F46E5), Color(0xFF06B6D4))))
+            .clip(cardShape)
+            .background(Brush.linearGradient(listOf(Color(0xFF4F46E5), Color(0xFF6366F1), Color(0xFF14B8A6))))
             .padding(24.dp)
     ) {
         // Decorative circle

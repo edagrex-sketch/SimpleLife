@@ -75,12 +75,13 @@ fun CalendarScreen(
         containerColor = background,
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showAddDialog = true },
+                onClick = {},
                 containerColor = VioletPrimary,
                 contentColor = Color.White,
                 shape = CircleShape,
                 modifier = Modifier
                     .padding(bottom = innerPadding.calculateBottomPadding() + 16.dp)
+                    .bounceClick { showAddDialog = true }
                     .shadow(12.dp, CircleShape, spotColor = VioletPrimary.copy(alpha = 0.4f))
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Agregar Evento", modifier = Modifier.size(24.dp))
@@ -150,9 +151,10 @@ fun CalendarScreen(
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 20.dp),
-                        shape = RoundedCornerShape(20.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                            .padding(horizontal = 20.dp)
+                            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.05f), MaterialTheme.shapes.large),
+                        shape = MaterialTheme.shapes.large,
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
                     ) {
                         Row(
                             modifier = Modifier.padding(20.dp),
@@ -243,7 +245,7 @@ fun CalendarHeader(currentMonth: YearMonth, isDark: Boolean) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.linearGradient(listOf(Color(0xFF0891B2), Color(0xFF06B6D4), Color(0xFF7C3AED))))
+                .background(Brush.linearGradient(GradientViolet))
         )
 
         // Decorative circle
@@ -296,8 +298,12 @@ fun MonthNavigator(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .shadow(6.dp, RoundedCornerShape(20.dp), spotColor = TealAccent.copy(alpha = 0.1f)),
-        shape    = RoundedCornerShape(20.dp),
+            .border(
+                1.dp,
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.08f),
+                MaterialTheme.shapes.large
+            ),
+        shape    = MaterialTheme.shapes.large,
         color    = MaterialTheme.colorScheme.surface
     ) {
         Row(
@@ -305,7 +311,10 @@ fun MonthNavigator(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment     = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onPrevious) {
+            IconButton(
+                onClick = {},
+                modifier = Modifier.bounceClick { onPrevious() }
+            ) {
                 Box(
                     modifier = Modifier
                         .size(36.dp)
@@ -333,7 +342,10 @@ fun MonthNavigator(
                 )
             }
 
-            IconButton(onClick = onNext) {
+            IconButton(
+                onClick = {},
+                modifier = Modifier.bounceClick { onNext() }
+            ) {
                 Box(
                     modifier = Modifier
                         .size(36.dp)
@@ -365,7 +377,7 @@ fun DaysOfWeekRow() {
                 fontSize   = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color      = if (isWeekend)
-                    TealAccent.copy(alpha = 0.8f)
+                    VioletPrimary.copy(alpha = 0.8f)
                 else
                     MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -387,89 +399,113 @@ fun PremiumCalendarGrid(
     for (i in 1 until firstDayOfMonth) daysList.add(null)
     for (i in 1..daysInMonth) daysList.add(i)
 
-    LazyVerticalGrid(
-        columns  = GridCells.Fixed(7),
-        modifier = Modifier.padding(horizontal = 16.dp),
-        verticalArrangement   = Arrangement.spacedBy(6.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        userScrollEnabled     = false
+    val chunkedDays = daysList.chunked(7)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        items(daysList) { day ->
-            if (day != null) {
-                val date       = currentMonth.atDay(day)
-                val isSelected = date == selectedDate
-                val isToday    = date == LocalDate.now()
-                val isWeekend  = date.dayOfWeek.value >= 6
+        chunkedDays.forEach { week ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                week.forEach { day ->
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (day != null) {
+                            val date       = currentMonth.atDay(day)
+                            val isSelected = date == selectedDate
+                            val isToday    = date == LocalDate.now()
+                            val isWeekend  = date.dayOfWeek.value >= 6
 
-                val scale by animateFloatAsState(
-                    targetValue = if (isSelected) 1.1f else 1f,
-                    animationSpec = spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMediumLow),
-                    label = "dayScale"
-                )
+                            val scale by animateFloatAsState(
+                                targetValue = if (isSelected) 1.1f else 1f,
+                                animationSpec = spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMediumLow),
+                                label = "dayScale"
+                            )
 
-                val dayEvents = events.filter { it.eventDate == date.toString() }
-                val hasEvents = dayEvents.isNotEmpty()
+                            val dayEvents = events.filter { it.eventDate == date.toString() }
+                            val hasEvents = dayEvents.isNotEmpty()
 
-                Box(
-                    modifier = Modifier
-                        .aspectRatio(1f)
-                        .scale(scale)
-                        .clip(CircleShape)
-                        .background(
-                            when {
-                                isSelected -> Brush.linearGradient(GradientViolet)
-                                isToday    -> Brush.linearGradient(listOf(TealAccent.copy(alpha = 0.15f), TealAccent.copy(alpha = 0.15f)))
-                                else       -> Brush.linearGradient(listOf(Color.Transparent, Color.Transparent))
-                            }
-                        )
-                        .clickable { onDateSelect(date) },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text  = day.toString(),
-                            fontSize = 14.sp,
-                            fontWeight = when {
-                                isSelected -> FontWeight.Black
-                                isToday    -> FontWeight.Bold
-                                else       -> FontWeight.Medium
-                            },
-                            color = when {
-                                isSelected -> Color.White
-                                isToday    -> TealAccent
-                                isWeekend  -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                                else       -> MaterialTheme.colorScheme.onSurface
-                            }
-                        )
-
-                        // Colored dots below date number if it has events
-                        if (hasEvents) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(2.dp),
-                                modifier = Modifier.padding(top = 2.dp)
-                            ) {
-                                dayEvents.take(3).forEach { ev ->
-                                    val dotColor = when (ev.color) {
-                                        "teal" -> Color(0xFF0D9488)
-                                        "violet" -> Color(0xFF7C3AED)
-                                        "orange" -> Color(0xFFEA580C)
-                                        "blue" -> Color(0xFF2563EB)
-                                        "green" -> Color(0xFF16A34A)
-                                        else -> VioletPrimary
-                                    }
-                                    Box(
-                                        modifier = Modifier
-                                            .size(5.dp)
-                                            .clip(CircleShape)
-                                            .background(if (isSelected) Color.White else dotColor)
+                            Box(
+                                modifier = Modifier
+                                    .aspectRatio(1f)
+                                    .scale(scale)
+                                    .clip(CircleShape)
+                                    .background(
+                                        when {
+                                            isSelected -> Brush.linearGradient(GradientViolet)
+                                            isToday    -> Brush.linearGradient(listOf(TealAccent.copy(alpha = 0.12f), TealAccent.copy(alpha = 0.12f)))
+                                            else       -> Brush.linearGradient(listOf(Color.Transparent, Color.Transparent))
+                                        }
                                     )
+                                    .then(
+                                        if (isToday && !isSelected) {
+                                            Modifier.border(1.dp, TealAccent.copy(alpha = 0.4f), CircleShape)
+                                        } else Modifier
+                                    )
+                                    .bounceClick { onDateSelect(date) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text  = day.toString(),
+                                        fontSize = 14.sp,
+                                        fontWeight = when {
+                                            isSelected -> FontWeight.Black
+                                            isToday    -> FontWeight.Bold
+                                            else       -> FontWeight.Medium
+                                        },
+                                        color = when {
+                                            isSelected -> Color.White
+                                            isToday    -> TealAccent
+                                            isWeekend  -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                            else       -> MaterialTheme.colorScheme.onSurface
+                                        }
+                                    )
+
+                                    // Colored dots below date number if it has events
+                                    if (hasEvents) {
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                            modifier = Modifier.padding(top = 2.dp)
+                                        ) {
+                                            dayEvents.take(3).forEach { ev ->
+                                                val dotColor = when (ev.color) {
+                                                    "teal" -> Color(0xFF0D9488)
+                                                    "violet" -> Color(0xFF7C3AED)
+                                                    "orange" -> Color(0xFFEA580C)
+                                                    "blue" -> Color(0xFF2563EB)
+                                                    "green" -> Color(0xFF16A34A)
+                                                    else -> VioletPrimary
+                                                }
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(5.dp)
+                                                        .clip(CircleShape)
+                                                        .background(if (isSelected) Color.White else dotColor)
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
+                        } else {
+                            Box(modifier = Modifier.aspectRatio(1f))
                         }
                     }
                 }
-            } else {
-                Box(modifier = Modifier.aspectRatio(1f))
+                // Fill remaining spaces in the row if week size is < 7
+                if (week.size < 7) {
+                    repeat(7 - week.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
             }
         }
     }
@@ -487,8 +523,8 @@ fun SelectedDayCard(selectedDate: LocalDate) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .shadow(8.dp, RoundedCornerShape(24.dp), spotColor = VioletPrimary.copy(alpha = 0.1f)),
-        shape = RoundedCornerShape(24.dp),
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.08f), MaterialTheme.shapes.large),
+        shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface
     ) {
         Row(
@@ -499,7 +535,7 @@ fun SelectedDayCard(selectedDate: LocalDate) {
             Box(
                 modifier = Modifier
                     .size(60.dp)
-                    .clip(RoundedCornerShape(18.dp))
+                    .clip(MaterialTheme.shapes.medium)
                     .background(
                         if (isToday) Brush.linearGradient(GradientViolet)
                         else Brush.linearGradient(listOf(TealAccent.copy(alpha = 0.15f), TealAccent.copy(alpha = 0.15f)))
@@ -565,8 +601,8 @@ fun EventCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .shadow(4.dp, RoundedCornerShape(20.dp), spotColor = barColor.copy(alpha = 0.1f)),
-        shape = RoundedCornerShape(20.dp),
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.06f), MaterialTheme.shapes.medium),
+        shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surface
     ) {
         Row(
@@ -611,7 +647,7 @@ fun EventCard(
                                 fontWeight = FontWeight.Bold,
                                 color = barColor,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                            )
+                              )
                         }
                     }
 
@@ -653,7 +689,8 @@ fun EventCard(
                 }
 
                 IconButton(
-                    onClick = onDeleteClick,
+                    onClick = {},
+                    modifier = Modifier.bounceClick { onDeleteClick() },
                     colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.error)
                 ) {
                     Icon(Icons.Default.DeleteOutline, contentDescription = "Eliminar Evento", modifier = Modifier.size(20.dp))
@@ -682,11 +719,12 @@ fun AddEventDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(28.dp),
+            shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surface,
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(24.dp, RoundedCornerShape(28.dp), spotColor = VioletPrimary.copy(alpha = 0.25f))
+                .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f), MaterialTheme.shapes.large)
+                .shadow(24.dp, MaterialTheme.shapes.large, spotColor = VioletPrimary.copy(alpha = 0.25f))
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
                 Text(
@@ -701,7 +739,7 @@ fun AddEventDialog(
                     onValueChange = { title = it },
                     label = { Text("Título") },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = MaterialTheme.shapes.medium,
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = VioletPrimary, focusedLabelColor = VioletPrimary)
                 )
 
@@ -712,7 +750,7 @@ fun AddEventDialog(
                     onValueChange = { desc = it },
                     label = { Text("Descripción (opcional)") },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = MaterialTheme.shapes.medium,
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = VioletPrimary, focusedLabelColor = VioletPrimary)
                 )
 
@@ -728,7 +766,7 @@ fun AddEventDialog(
                         onValueChange = { startTime = it },
                         label = { Text("Inicio (HH:MM)") },
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(14.dp),
+                        shape = MaterialTheme.shapes.medium,
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = VioletPrimary, focusedLabelColor = VioletPrimary)
                     )
                     OutlinedTextField(
@@ -736,7 +774,7 @@ fun AddEventDialog(
                         onValueChange = { endTime = it },
                         label = { Text("Fin (HH:MM)") },
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(14.dp),
+                        shape = MaterialTheme.shapes.medium,
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = VioletPrimary, focusedLabelColor = VioletPrimary)
                     )
                 }
@@ -745,34 +783,39 @@ fun AddEventDialog(
 
                 // Category Chips
                 Text("Categoría", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(90.dp)
                         .padding(top = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    items(categories) { cat ->
-                        val isSelected = category == cat
-                        Surface(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { category = cat },
-                            color = if (isSelected) VioletPrimary else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(12.dp)
+                    val chunkedCategories = categories.chunked(3)
+                    chunkedCategories.forEach { rowCategories ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Text(
-                                text = cat,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .padding(vertical = 8.dp)
-                                    .fillMaxWidth(),
-                                textAlign = TextAlign.Center
-                            )
+                            rowCategories.forEach { cat ->
+                                val isSelected = category == cat
+                                Surface(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .bounceClick { category = cat },
+                                    color = if (isSelected) VioletPrimary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    shape = MaterialTheme.shapes.medium
+                                ) {
+                                    Text(
+                                        text = cat,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier
+                                            .padding(vertical = 8.dp)
+                                            .fillMaxWidth(),
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -790,11 +833,11 @@ fun AddEventDialog(
                         Box(
                             modifier = Modifier
                                 .size(32.dp)
+                                .bounceClick { color = colorName }
                                 .clip(CircleShape)
                                 .background(colorVal)
-                                .clickable { color = colorName }
                                 .border(
-                                    width = if (isSelected) 3.dp else 0.dp,
+                                    width = if (isSelected) 2.dp else 0.dp,
                                     color = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
                                     shape = CircleShape
                                 )
@@ -810,14 +853,15 @@ fun AddEventDialog(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     OutlinedButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.weight(1f).height(50.dp),
-                        shape = RoundedCornerShape(16.dp)
+                        onClick = {},
+                        modifier = Modifier.weight(1f).height(50.dp).bounceClick { onDismiss() },
+                        shape = MaterialTheme.shapes.medium
                     ) {
                         Text("Cancelar", fontWeight = FontWeight.Bold)
                     }
                     Button(
-                        onClick = {
+                        onClick = {},
+                        modifier = Modifier.weight(1f).height(50.dp).bounceClick {
                             if (title.isNotBlank()) {
                                 onSave(
                                     title,
@@ -829,8 +873,7 @@ fun AddEventDialog(
                                 )
                             }
                         },
-                        modifier = Modifier.weight(1f).height(50.dp),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = MaterialTheme.shapes.medium,
                         colors = ButtonDefaults.buttonColors(containerColor = VioletPrimary)
                     ) {
                         Text("Guardar", fontWeight = FontWeight.Bold, color = Color.White)

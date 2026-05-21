@@ -37,8 +37,8 @@ fun PremiumTaskBottomSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFFE2E8F0)) },
-        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+        dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)) },
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         containerColor = MaterialTheme.colorScheme.surface
     ) {
         Column(
@@ -49,10 +49,8 @@ fun PremiumTaskBottomSheet(
         ) {
             Text(
                 "Añadir Tarea",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.onSurface,
-                letterSpacing = (-0.5).sp
+                style = MaterialTheme.typography.displaySmall,
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -63,10 +61,10 @@ fun PremiumTaskBottomSheet(
                 onValueChange = { title = it },
                 placeholder = { Text("¿Qué necesitas hacer?", color = Color.Gray) },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
+                shape = MaterialTheme.shapes.medium,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = VioletPrimary,
-                    unfocusedBorderColor = Color.LightGray.copy(alpha = 0.3f),
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
                     focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
                 ),
@@ -92,15 +90,16 @@ fun PremiumTaskBottomSheet(
                 listOf(TaskPriority.LOW, TaskPriority.MEDIUM, TaskPriority.HIGH).forEach { p ->
                     val isSelected = priority == p
                     val color = p.getColor()
+                    val itemShape = MaterialTheme.shapes.medium
 
                     Surface(
                         modifier = Modifier
                             .weight(1f)
-                            .clickable { priority = p },
-                        shape = RoundedCornerShape(14.dp),
+                            .bounceClick { priority = p },
+                        shape = itemShape,
                         color = if (isSelected) color else color.copy(alpha = 0.08f),
                         border = if (isSelected) null else androidx.compose.foundation.BorderStroke(
-                            1.dp, color.copy(alpha = 0.2f)
+                            1.dp, color.copy(alpha = 0.25f)
                         )
                     ) {
                         Box(
@@ -138,11 +137,11 @@ fun PremiumTaskBottomSheet(
                     // "Unassigned" item
                     item {
                         val isSelected = selectedMemberId == null
+                        val itemShape = MaterialTheme.shapes.medium
                         Surface(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { selectedMemberId = null },
-                            shape = RoundedCornerShape(12.dp),
+                                .bounceClick { selectedMemberId = null },
+                            shape = itemShape,
                             color = if (isSelected) VioletPrimary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                         ) {
                             Row(
@@ -171,12 +170,12 @@ fun PremiumTaskBottomSheet(
                         val isSelected = selectedMemberId == member.id
                         val name = member.name ?: member.email ?: "Miembro"
                         val initial = name.firstOrNull()?.toString()?.uppercase() ?: "?"
+                        val itemShape = MaterialTheme.shapes.medium
 
                         Surface(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { selectedMemberId = member.id },
-                            shape = RoundedCornerShape(12.dp),
+                                .bounceClick { selectedMemberId = member.id },
+                            shape = itemShape,
                             color = if (isSelected) VioletPrimary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                         ) {
                             Row(
@@ -214,15 +213,18 @@ fun PremiumTaskBottomSheet(
 
             // Confirm Button
             Button(
-                onClick = { if (title.isNotEmpty()) onConfirm(title, priority, selectedMemberId) },
+                onClick = {},
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(18.dp),
+                    .height(54.dp)
+                    .bounceClick(enabled = title.isNotEmpty()) {
+                        if (title.isNotEmpty()) onConfirm(title, priority, selectedMemberId)
+                    },
+                shape = MaterialTheme.shapes.medium,
                 colors = ButtonDefaults.buttonColors(containerColor = VioletPrimary),
                 enabled = title.isNotEmpty()
             ) {
-                Text("Crear Tarea", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text("Crear Tarea", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
             }
         }
     }
