@@ -2,8 +2,10 @@ package com.vidasimple.workers
 
 import android.content.Context
 import androidx.work.*
+import com.vidasimple.data.insights.BriefingCache
 import com.vidasimple.data.insights.DailyBriefingManager
 import com.vidasimple.notifications.LocalNotificationHelper
+import com.vidasimple.utils.TTSManager
 import java.util.concurrent.TimeUnit
 
 class InsightsWorker(
@@ -17,6 +19,7 @@ class InsightsWorker(
         private const val KEY_ENABLED = "insights_enabled"
         private const val KEY_HOUR = "insights_hour"
         private const val KEY_MINUTE = "insights_minute"
+        private const val KEY_AUTO_READ = "insights_auto_read"
 
         fun isEnabled(context: Context): Boolean {
             val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -31,6 +34,16 @@ class InsightsWorker(
             } else {
                 cancel(context)
             }
+        }
+
+        fun isAutoReadEnabled(context: Context): Boolean {
+            val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            return prefs.getBoolean(KEY_AUTO_READ, false)
+        }
+
+        fun setAutoRead(context: Context, enabled: Boolean) {
+            val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putBoolean(KEY_AUTO_READ, enabled).apply()
         }
 
         fun getScheduledHour(context: Context): Int {
@@ -94,6 +107,20 @@ class InsightsWorker(
             val result = DailyBriefingManager.generateBriefing(context)
 
             if (result != null) {
+                // Save to cache for in-app access
+                BriefingCache.saveBriefing(result.title, result.message)
+
+                // Auto-read briefing via TTS if enabled
+                try {
+                    if (isAutoReadEnabled(context)) {
+                        TTSManager.init(context)
+                        TTSManager.speak(result.message)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace() // Don't block the briefing notification
+                }
+
+                // Send notification
                 LocalNotificationHelper.showNotification(
                     context = context,
                     title = result.title,

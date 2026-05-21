@@ -23,6 +23,9 @@ class ProfileViewModel(application: android.app.Application) : androidx.lifecycl
         private set
 
     var insightsEnabled = mutableStateOf(true)
+    var insightsAutoRead = mutableStateOf(false)
+        private set
+
         private set
 
     var userName = mutableStateOf("Usuario VidaSimple")
@@ -41,6 +44,7 @@ class ProfileViewModel(application: android.app.Application) : androidx.lifecycl
         private set
 
     init {
+        insightsAutoRead.value = InsightsWorker.isAutoReadEnabled(getApplication())
         loadUserProfile()
         refreshData()
         insightsEnabled.value = InsightsWorker.isEnabled(getApplication())
@@ -136,6 +140,12 @@ class ProfileViewModel(application: android.app.Application) : androidx.lifecycl
         insightsEnabled.value = enabled
         InsightsWorker.setEnabled(getApplication(), enabled)
         statusMessage.value = if (enabled) "Briefing diario activado ☀️" else "Briefing diario desactivado"
+    }
+
+    fun toggleAutoRead(enabled: Boolean) {
+        insightsAutoRead.value = enabled
+        InsightsWorker.setAutoRead(getApplication(), enabled)
+        statusMessage.value = if (enabled) "Lectura en voz alta activada 🔊" else "Lectura en voz alta desactivada"
     }
 
     fun signOut(onSuccess: () -> Unit) {

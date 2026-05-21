@@ -115,6 +115,20 @@ fun ProfileScreen(
                         gradient = listOf(Color(0xFF8B5CF6), TealAccent),
                         onClick  = { }
                     )
+                    PremiumDivider()
+                    PremiumRow(
+                        icon     = Icons.Default.VolumeUp,
+                        title    = "Leer briefing en voz alta",
+                        subtitle = "El AI Coach leerá tu briefing cada mañana",
+                        gradient = listOf(Color(0xFF8B5CF6), Color(0xFF06B6D4)),
+                        onClick  = { }
+                    ) {
+                        PremiumSwitch(
+                            checked  = viewModel.insightsAutoRead.value,
+                            onCheckedChange = { viewModel.toggleAutoRead(it) },
+                            activeColor = TealAccent
+                        )
+                    }
                 }
             }
 
