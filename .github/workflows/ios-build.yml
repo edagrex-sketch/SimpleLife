@@ -168,8 +168,10 @@ jobs:
           # Install pods if Podfile exists (always run to ensure sync with Podfile.lock)
           if [ -f "Podfile" ]; then
             echo "Running pod install..."
-            pod install
+            pod install --repo-update 2>&1 || { echo "pod install failed"; exit 1; }
+            echo "pod install completed"
             WORKSPACE=$(find . -maxdepth 1 -name "*.xcworkspace" | head -1)
+            echo "Workspace found: $WORKSPACE"
           fi
 
           # Determine scheme (only needed for native projects)
@@ -221,20 +223,22 @@ jobs:
             BUILD_CMD="$BUILD_CMD -derivedDataPath $DERIVED_DATA_PATH"
             BUILD_CMD="$BUILD_CMD CODE_SIGNING_ALLOWED=NO"
             BUILD_CMD="$BUILD_CMD COMPILER_INDEX_STORE_ENABLE=NO"
-            BUILD_CMD="$BUILD_CMD build"
+            BUILD_CMD="$BUILD_CMD build 2>&1"
 
             echo "Running: $BUILD_CMD"
             XCODE_LOG="/tmp/xcodebuild.log"
-            $BUILD_CMD > "$XCODE_LOG" 2>&1 || {
-              echo "xcodebuild failed. Last 30 lines of log:"
-              tail -30 "$XCODE_LOG"
+            if $BUILD_CMD > "$XCODE_LOG" 2>&1; then
+              echo "xcodebuild succeeded"
+              cat "$XCODE_LOG" | tail -5
+            else
+              echo "xcodebuild failed. Full log:"
+              cat "$XCODE_LOG"
               echo "--- DerivedData products ---"
               ls -la "$DERIVED_DATA_PATH/Build/Products/" 2>/dev/null || echo "No products dir"
-              echo "--- find .app ---"
+              echo "--- find .app (any) ---"
               find "$DERIVED_DATA_PATH" -name "*.app" -type d 2>/dev/null | head -5
               exit 1
-            }
-            echo "xcodebuild succeeded"
+            fi
           else
             BUILD_CMD="xcodebuild"
             if [ -n "$WORKSPACE" ]; then
