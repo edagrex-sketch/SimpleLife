@@ -224,7 +224,17 @@ jobs:
             BUILD_CMD="$BUILD_CMD build"
 
             echo "Running: $BUILD_CMD"
-            eval $BUILD_CMD || { echo "xcodebuild failed"; ls -la "$DERIVED_DATA_PATH/Build/Products/" 2>/dev/null || echo "No DerivedData products found"; exit 1; }
+            XCODE_LOG="/tmp/xcodebuild.log"
+            $BUILD_CMD > "$XCODE_LOG" 2>&1 || {
+              echo "xcodebuild failed. Last 30 lines of log:"
+              tail -30 "$XCODE_LOG"
+              echo "--- DerivedData products ---"
+              ls -la "$DERIVED_DATA_PATH/Build/Products/" 2>/dev/null || echo "No products dir"
+              echo "--- find .app ---"
+              find "$DERIVED_DATA_PATH" -name "*.app" -type d 2>/dev/null | head -5
+              exit 1
+            }
+            echo "xcodebuild succeeded"
           else
             BUILD_CMD="xcodebuild"
             if [ -n "$WORKSPACE" ]; then
