@@ -52,9 +52,10 @@ jobs:
         id: cache-deriveddata
         with:
           path: DerivedData
-          key: deriveddata-${{ github.run_id }}
+          key: deriveddata-${{ github.run_id }}-${{ hashFiles('ios/Podfile.lock', 'package.json') }}
           restore-keys: |
-            deriveddata-
+            deriveddata-clean-
+          fail-on-cache-miss: false
 
       - name: Detect project type
         id: detect
@@ -226,12 +227,14 @@ jobs:
             BUILD_CMD="$BUILD_CMD build"
 
             echo "Running: $BUILD_CMD"
-            echo "Starting xcodebuild..."
-            $BUILD_CMD 2>&1 | tail -20
-            RC=$?
-            if [ $RC -ne 0 ]; then
-              echo "xcodebuild failed with exit code $RC"
-              ls -la "$DERIVED_DATA_PATH/Build/Products/" 2>/dev/null || echo "No products"
+            LOG=/tmp/xb.log
+            $BUILD_CMD > $LOG 2>&1; rc=$?
+            echo "---BEGIN XCODE LOG---"
+            cat $LOG
+            echo "---END XCODE LOG---"
+            echo "Exit code: $rc"
+            if [ $rc -ne 0 ]; then
+              echo "xcodebuild FAILED"
               exit 1
             fi
             echo "xcodebuild OK"
@@ -331,12 +334,12 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-      - name: Save DerivedData cache
-        uses: actions/cache/save@v4
-        if: always()
-        with:
-          path: DerivedData
-          key: deriveddata-${{ github.run_id }}
+      # - name: Save DerivedData cache
+      #   uses: actions/cache/save@v4
+      #   if: always()
+      #   with:
+      #     path: DerivedData
+      #     key: deriveddata-${{ github.run_id }}
 
       - name: Cleanup signing
         if: always() && inputs.use_signing
