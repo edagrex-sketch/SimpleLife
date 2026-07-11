@@ -223,22 +223,18 @@ jobs:
             BUILD_CMD="$BUILD_CMD -derivedDataPath $DERIVED_DATA_PATH"
             BUILD_CMD="$BUILD_CMD CODE_SIGNING_ALLOWED=NO"
             BUILD_CMD="$BUILD_CMD COMPILER_INDEX_STORE_ENABLE=NO"
-            BUILD_CMD="$BUILD_CMD build 2>&1"
+            BUILD_CMD="$BUILD_CMD build"
 
             echo "Running: $BUILD_CMD"
-            XCODE_LOG="/tmp/xcodebuild.log"
-            if $BUILD_CMD > "$XCODE_LOG" 2>&1; then
-              echo "xcodebuild succeeded"
-              cat "$XCODE_LOG" | tail -5
-            else
-              echo "xcodebuild failed. Full log:"
-              cat "$XCODE_LOG"
-              echo "--- DerivedData products ---"
-              ls -la "$DERIVED_DATA_PATH/Build/Products/" 2>/dev/null || echo "No products dir"
-              echo "--- find .app (any) ---"
-              find "$DERIVED_DATA_PATH" -name "*.app" -type d 2>/dev/null | head -5
+            echo "Starting xcodebuild..."
+            $BUILD_CMD 2>&1 | tail -20
+            RC=$?
+            if [ $RC -ne 0 ]; then
+              echo "xcodebuild failed with exit code $RC"
+              ls -la "$DERIVED_DATA_PATH/Build/Products/" 2>/dev/null || echo "No products"
               exit 1
             fi
+            echo "xcodebuild OK"
           else
             BUILD_CMD="xcodebuild"
             if [ -n "$WORKSPACE" ]; then
