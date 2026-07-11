@@ -5,7 +5,11 @@
     "owner": "edagrex-sketch",
     "repo": "NovedosaApp"
   },
-  "ios": {},
+  "ios": {
+    "path": "ios",
+    "scheme": "NovedosaApp",
+    "signing": false
+  },
   "flutter": {
     "watch": {}
   },
