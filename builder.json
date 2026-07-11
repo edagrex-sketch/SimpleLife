@@ -1,9 +1,9 @@
 {
-  "project": "NovedosaApp",
+  "project": "Aura",
   "platform": "ios",
   "github": {
     "owner": "edagrex-sketch",
-    "repo": "NovedosaApp"
+    "repo": "Aura"
   },
   "ios": {
     "path": "ios",
