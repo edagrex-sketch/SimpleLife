@@ -1,0 +1,14 @@
+{
+  "project": "NovedosaApp",
+  "platform": "ios",
+  "github": {
+    "owner": "edagrex-sketch",
+    "repo": "NovedosaApp"
+  },
+  "ios": {},
+  "flutter": {
+    "watch": {}
+  },
+  "reactNative": {},
+  "mobai": {}
+}
