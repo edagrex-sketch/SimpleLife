@@ -102,16 +102,7 @@ jobs:
         if: (steps.detect.outputs.type == 'reactnative' || steps.detect.outputs.type == 'expo') && steps.node-modules-cache.outputs.cache-hit != 'true'
         run: npm install
 
-      - name: Restore Pods cache
-        uses: actions/cache@v4
-        id: pods-cache
-        with:
-          path: |
-            ${{ inputs.ios_path }}/Pods
-            ~/.cocoapods/repos
-          key: pods-${{ runner.os }}-${{ hashFiles(format('{0}/Podfile.lock', inputs.ios_path)) }}-${{ hashFiles('package.json') }}
-          restore-keys: |
-            pods-${{ runner.os }}-
+
 
       - name: Install certificate and provisioning profile
         if: inputs.use_signing
@@ -168,11 +159,18 @@ jobs:
 
           # Install pods if Podfile exists (always run to ensure sync with Podfile.lock)
           if [ -f "Podfile" ]; then
-            echo "Running pod install..."
-            pod install --repo-update 2>&1 || { echo "pod install failed"; exit 1; }
-            echo "pod install completed"
+            echo "Running pod install (with repo update)..."
+            rm -rf Pods  # Fresh install
+            pod install --repo-update 2>&1
+            RC=$?
+            echo "pod install exit code: $RC"
+            if [ $RC -ne 0 ]; then
+              echo "pod install FAILED"
+              exit 1
+            fi
+            echo "pod install OK"
             WORKSPACE=$(find . -maxdepth 1 -name "*.xcworkspace" | head -1)
-            echo "Workspace found: $WORKSPACE"
+            echo "Workspace: $WORKSPACE"
           fi
 
           # Determine scheme (only needed for native projects)
