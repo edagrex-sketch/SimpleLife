@@ -221,10 +221,10 @@ jobs:
             BUILD_CMD="$BUILD_CMD -derivedDataPath $DERIVED_DATA_PATH"
             BUILD_CMD="$BUILD_CMD CODE_SIGNING_ALLOWED=NO"
             BUILD_CMD="$BUILD_CMD COMPILER_INDEX_STORE_ENABLE=NO"
-            BUILD_CMD="$BUILD_CMD -quiet build"
+            BUILD_CMD="$BUILD_CMD build"
 
             echo "Running: $BUILD_CMD"
-            eval $BUILD_CMD
+            eval $BUILD_CMD || { echo "xcodebuild failed"; ls -la "$DERIVED_DATA_PATH/Build/Products/" 2>/dev/null || echo "No DerivedData products found"; exit 1; }
           else
             BUILD_CMD="xcodebuild"
             if [ -n "$WORKSPACE" ]; then
@@ -289,8 +289,14 @@ jobs:
               # Flutter outputs to build/ios/iphoneos/
               APP_PATH=$(find "${GITHUB_WORKSPACE}/build/ios/iphoneos" -name "*.app" -type d | head -1)
             else
-              # Native and React Native/Expo use DerivedData
-              APP_PATH=$(find "$DERIVED_DATA_PATH/Build/Products/${CONFIGURATION}-iphoneos" -name "*.app" -type d | head -1)
+            # Native and React Native/Expo use DerivedData
+            echo "Looking for .app in DerivedData products..."
+            ls -la "$DERIVED_DATA_PATH/Build/Products/" 2>/dev/null || echo "No products dir"
+            ls -la "$DERIVED_DATA_PATH/Build/Products/${CONFIGURATION}-iphoneos/" 2>/dev/null || echo "No ${CONFIGURATION}-iphoneos dir"
+            APP_PATH=$(find "$DERIVED_DATA_PATH/Build/Products/${CONFIGURATION}-iphoneos" -name "*.app" -type d | head -1)
+            if [ -z "$APP_PATH" ]; then
+              APP_PATH=$(find "$DERIVED_DATA_PATH/Build/Products" -name "*.app" -type d 2>/dev/null | head -1)
+            fi
             fi
 
             if [ -z "$APP_PATH" ]; then
