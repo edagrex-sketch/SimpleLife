@@ -47,15 +47,15 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - name: Restore DerivedData cache
-        uses: actions/cache/restore@v4
-        id: cache-deriveddata
-        with:
-          path: DerivedData
-          key: deriveddata-${{ github.run_id }}-${{ hashFiles('ios/Podfile.lock', 'package.json') }}
-          restore-keys: |
-            deriveddata-clean-
-          fail-on-cache-miss: false
+      # - name: Restore DerivedData cache
+      #   uses: actions/cache/restore@v4
+      #   id: cache-deriveddata
+      #   with:
+      #     path: DerivedData
+      #     key: deriveddata-${{ github.run_id }}-${{ hashFiles('ios/Podfile.lock', 'package.json') }}
+      #     restore-keys: |
+      #       deriveddata-clean-
+      #     fail-on-cache-miss: false
 
       - name: Detect project type
         id: detect
@@ -192,6 +192,13 @@ jobs:
           # Use custom DerivedData path for caching
           DERIVED_DATA_PATH="${GITHUB_WORKSPACE}/DerivedData"
 
+          # Debug: list what's in ios/
+          ls -la "$IOS_PATH"
+          echo "Workspace: $WORKSPACE"
+          echo "Project: $PROJECT"
+          echo "Scheme: $SCHEME"
+          echo "Project type: $PROJECT_TYPE"
+
           if [ "$PROJECT_TYPE" = "flutter" ]; then
             cd ..
             if [ "$CONFIGURATION" = "Debug" ]; then
@@ -228,14 +235,13 @@ jobs:
             BUILD_CMD="$BUILD_CMD build"
 
             echo "Running: $BUILD_CMD"
-            LOG=/tmp/xb.log
-            $BUILD_CMD > $LOG 2>&1; rc=$?
-            echo "---BEGIN XCODE LOG---"
-            cat $LOG
-            echo "---END XCODE LOG---"
+            set +e
+            eval $BUILD_CMD 2>&1
+            rc=$?
+            set -e
             echo "Exit code: $rc"
             if [ $rc -ne 0 ]; then
-              echo "xcodebuild FAILED"
+              echo "xcodebuild FAILED (exit $rc)"
               exit 1
             fi
             echo "xcodebuild OK"
