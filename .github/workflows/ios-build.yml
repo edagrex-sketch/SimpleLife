@@ -160,8 +160,9 @@ jobs:
            # Install pods if Podfile exists (always run to ensure sync with Podfile.lock)
           if [ -f "Podfile" ]; then
             echo "Running pod install (with repo update)..."
-            # Remove reanimated Fabric code (incompatible with RN 0.86 types)
+            # Remove incompatibilities with RN 0.86 + Xcode 26
             rm -rf ../node_modules/react-native-reanimated/Common/cpp/Fabric
+            rm -rf ../node_modules/react-native/ReactCommon/hermes/inspector-modern
             set +e
             # export USE_FRAMEWORKS=static
             rm -rf Pods Podfile.lock  # Fresh install
