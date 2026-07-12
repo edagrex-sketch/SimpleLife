@@ -30,13 +30,6 @@ target 'NovedosaApp' do
       :mac_catalyst_enabled => false,
     )
 
-    # Fix 'folly/coro/Coroutine.h' file not found (Xcode 26+ compatibility)
-    # Patch Expected.h to remove the coroutine include in all folly pods
-    system("chmod -R u+w Pods")
-    Dir.glob("Pods/*/folly/folly/Expected.h").each do |file|
-      text = File.read(file)
-      text = text.gsub('#include <folly/coro/Coroutine.h>', '// patched')
-      File.open(file, 'w') { |f| f.puts text }
-    end
+    # (fix moved to workflow Build IPA step)
   end
 end
