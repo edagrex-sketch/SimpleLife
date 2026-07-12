@@ -31,13 +31,12 @@ target 'NovedosaApp' do
     )
 
     # Fix 'folly/coro/Coroutine.h' file not found (Xcode 26+ compatibility)
-    installer.pods_project.targets.each do |target|
-      target.build_configurations.each do |config|
-        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
-        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'FOLLY_CFG_NO_COROUTINES=1'
-        config.build_settings['OTHER_CPLUSPLUSFLAGS'] ||= ['$(inherited)']
-        config.build_settings['OTHER_CPLUSPLUSFLAGS'] << '-DFOLLY_CFG_NO_COROUTINES=1'
-      end
+    # Patch Expected.h to remove the coroutine include in all folly pods
+    system("chmod -R u+w Pods")
+    Dir.glob("Pods/*/folly/folly/Expected.h").each do |file|
+      text = File.read(file)
+      text = text.gsub('#include <folly/coro/Coroutine.h>', '// patched')
+      File.open(file, 'w') { |f| f.puts text }
     end
   end
 end
