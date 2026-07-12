@@ -157,9 +157,11 @@ jobs:
           WORKSPACE=$(find . -maxdepth 1 -name "*.xcworkspace" | head -1)
           PROJECT=$(find . -maxdepth 1 -name "*.xcodeproj" | head -1)
 
-          # Install pods if Podfile exists (always run to ensure sync with Podfile.lock)
+           # Install pods if Podfile exists (always run to ensure sync with Podfile.lock)
           if [ -f "Podfile" ]; then
             echo "Running pod install (with repo update)..."
+            # Remove reanimated Fabric code (incompatible with RN 0.86)
+            rm -rf ../node_modules/react-native-reanimated/Common/cpp/Fabric
             set +e
             export USE_FRAMEWORKS=static
             rm -rf Pods Podfile.lock  # Fresh install
