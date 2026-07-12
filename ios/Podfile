@@ -31,15 +31,12 @@ target 'NovedosaApp' do
     )
 
     # Fix 'folly/coro/Coroutine.h' file not found (Xcode 26+ compatibility)
-    # Patch both RCT-Folly and ReactNativeDependencies
-    ["Pods/RCT-Folly", "Pods/ReactNativeDependencies"].each do |path|
-      if Dir.exist?(path)
-        system("chmod -R u+w #{path}")
-        Dir.glob("#{path}/folly/Portability.h").each do |file|
-          text = File.read(file)
-          new_contents = text.gsub('#define FOLLY_HAS_COROUTINES 1', '#define FOLLY_HAS_COROUTINES 0')
-          File.open(file, "w") { |f| f.puts new_contents }
-        end
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'FOLLY_CFG_NO_COROUTINES=1'
+        config.build_settings['OTHER_CPLUSPLUSFLAGS'] ||= ['$(inherited)']
+        config.build_settings['OTHER_CPLUSPLUSFLAGS'] << '-DFOLLY_CFG_NO_COROUTINES=1'
       end
     end
   end
