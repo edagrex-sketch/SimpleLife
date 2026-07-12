@@ -175,12 +175,12 @@ jobs:
             WORKSPACE=$(find . -maxdepth 1 -name "*.xcworkspace" | head -1)
             echo "Workspace: $WORKSPACE"
 
-            # Patch Expected.h to fix folly coroutine issue on Xcode 26+
-            find Pods -name "Expected.h" -path "*/folly/*" 2>/dev/null | while read f; do
-              sed -i '' 's|#include <folly/coro/Coroutine.h>|// patched|g' "$f" 2>/dev/null || true
+            # Patch folly Portability.h to disable coroutines (Xcode 26+ compat)
+            find Pods -name "Portability.h" -path "*/folly/*" 2>/dev/null | while read f; do
+              sed -i '' 's|#define FOLLY_HAS_COROUTINES 1|#define FOLLY_HAS_COROUTINES 0|g' "$f" 2>/dev/null || true
             done
-            PATCHED=$(find Pods -name "Expected.h" -path "*/folly/*" 2>/dev/null | wc -l)
-            echo "Patched $PATCHED Expected.h files"
+            PATCHED=$(find Pods -name "Portability.h" -path "*/folly/*" 2>/dev/null | wc -l)
+            echo "Patched $PATCHED folly Portability.h files"
           fi
 
           # Determine scheme (only needed for native projects)
