@@ -162,6 +162,7 @@ jobs:
             echo "Running pod install (with repo update)..."
             set +e
             export USE_FRAMEWORKS=static
+            export RCT_NEW_ARCH_ENABLED=1
             rm -rf Pods Podfile.lock  # Fresh install
             pod install --repo-update 2>&1
             RC=$?
