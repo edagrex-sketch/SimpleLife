@@ -160,9 +160,31 @@ jobs:
            # Install pods if Podfile exists (always run to ensure sync with Podfile.lock)
           if [ -f "Podfile" ]; then
             echo "Running pod install (with repo update)..."
-            # Remove incompatibilities with RN 0.86 + Xcode 26
+            # Patch incompatibilities with RN 0.86 + Xcode 26
             rm -rf ../node_modules/react-native-reanimated/Common/cpp/Fabric
-            rm -rf ../node_modules/react-native/ReactCommon/hermes/inspector-modern
+            # Create missing Hermes inspector headers (RN 0.86 prebuilt Hermes doesn't include them)
+            mkdir -p ../node_modules/react-native/ReactCommon/hermes/inspector
+            cat > ../node_modules/react-native/ReactCommon/hermes/inspector/RuntimeAdapter.h << 'EOF'
+#pragma once
+#include <hermes/hermes.h>
+namespace facebook { namespace hermes { namespace inspector {
+class RuntimeAdapter { public: virtual ~RuntimeAdapter() = default; };
+}}} // namespace facebook::hermes::inspector
+EOF
+            mkdir -p ../node_modules/react-native/ReactCommon/hermes/inspector/chrome
+            cat > ../node_modules/react-native/ReactCommon/hermes/inspector/chrome/Registration.h << 'EOF'
+#pragma once
+namespace facebook { namespace hermes { namespace inspector { namespace chrome {
+inline void registerInspector(std::shared_ptr<RuntimeAdapter>, const std::string &, bool) {}
+}}}} // namespace
+EOF
+            mkdir -p ../node_modules/react-native/ReactCommon/hermes/inspector-modern/chrome
+            cat > ../node_modules/react-native/ReactCommon/hermes/inspector-modern/chrome/Registration.h << 'EOF'
+#pragma once
+namespace facebook { namespace hermes { namespace inspector_modern { namespace chrome {
+inline void registerInspector(std::shared_ptr<facebook::hermes::inspector::RuntimeAdapter>, const std::string &, bool) {}
+}}}} // namespace
+EOF
             set +e
             # export USE_FRAMEWORKS=static
             rm -rf Pods Podfile.lock  # Fresh install
