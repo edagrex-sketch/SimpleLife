@@ -28,7 +28,14 @@ target 'NovedosaApp' do
       installer,
       config[:reactNativePath],
       :mac_catalyst_enabled => false,
-      # :ccache_enabled => true
     )
+
+    # Fix 'folly/coro/Coroutine.h' file not found (Xcode 26+ compatibility)
+    system("chmod -R u+w Pods/RCT-Folly")
+    Dir.glob("Pods/RCT-Folly/folly/Portability.h").each do |file|
+      text = File.read(file)
+      new_contents = text.gsub('#define FOLLY_HAS_COROUTINES 1', '#define FOLLY_HAS_COROUTINES 0')
+      File.open(file, "w") { |file| file.puts new_contents }
+    end
   end
 end

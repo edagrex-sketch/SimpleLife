@@ -45,7 +45,7 @@ jobs:
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '16.2'
+          xcode-version: latest-stable
 
       # - name: Restore DerivedData cache
       #   uses: actions/cache/restore@v4
@@ -162,7 +162,6 @@ jobs:
             echo "Running pod install (with repo update)..."
             set +e
             export USE_FRAMEWORKS=static
-            export RCT_NEW_ARCH_ENABLED=0
             rm -rf Pods Podfile.lock  # Fresh install
             pod install --repo-update 2>&1
             RC=$?
@@ -193,11 +192,6 @@ jobs:
           # Use custom DerivedData path for caching
           DERIVED_DATA_PATH="${GITHUB_WORKSPACE}/DerivedData"
 
-          # Debug: list what's in current directory
-          ls -la
-          echo "Workspace: $WORKSPACE"
-          echo "Project: $PROJECT"
-          echo "Scheme: $SCHEME"
           echo "Project type: $PROJECT_TYPE"
 
           if [ "$PROJECT_TYPE" = "flutter" ]; then
