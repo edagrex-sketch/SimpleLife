@@ -31,11 +31,16 @@ target 'NovedosaApp' do
     )
 
     # Fix 'folly/coro/Coroutine.h' file not found (Xcode 26+ compatibility)
-    system("chmod -R u+w Pods/RCT-Folly")
-    Dir.glob("Pods/RCT-Folly/folly/Portability.h").each do |file|
-      text = File.read(file)
-      new_contents = text.gsub('#define FOLLY_HAS_COROUTINES 1', '#define FOLLY_HAS_COROUTINES 0')
-      File.open(file, "w") { |file| file.puts new_contents }
+    # Patch both RCT-Folly and ReactNativeDependencies
+    ["Pods/RCT-Folly", "Pods/ReactNativeDependencies"].each do |path|
+      if Dir.exist?(path)
+        system("chmod -R u+w #{path}")
+        Dir.glob("#{path}/folly/Portability.h").each do |file|
+          text = File.read(file)
+          new_contents = text.gsub('#define FOLLY_HAS_COROUTINES 1', '#define FOLLY_HAS_COROUTINES 0')
+          File.open(file, "w") { |f| f.puts new_contents }
+        end
+      end
     end
   end
 end
