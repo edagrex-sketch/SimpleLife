@@ -162,14 +162,9 @@ jobs:
             echo "Running pod install (with repo update)..."
             # Patch incompatibilities with RN 0.86 + Xcode 26
             rm -rf ../node_modules/react-native-reanimated/Common/cpp/Fabric
-            # Disable hermes debugger in reanimated (missing types in RN 0.86 prebuilt)
-            sed -i '' 's|#if HERMES_ENABLE_DEBUGGER|#if 0 // disabled for RN 0.86 compat|' ../node_modules/react-native-reanimated/Common/cpp/ReanimatedRuntime/ReanimatedHermesRuntime.h
-            # Create missing Hermes inspector headers (RN 0.86 prebuilt Hermes doesn't include them)
-            mkdir -p ../node_modules/react-native/ReactCommon/hermes/inspector/chrome
-            printf '%s\n' '#pragma once' '#include <hermes/hermes.h>' 'namespace facebook { namespace hermes { namespace inspector {' 'class RuntimeAdapter { public: virtual ~RuntimeAdapter() = default; };' '}}} // namespace' > ../node_modules/react-native/ReactCommon/hermes/inspector/RuntimeAdapter.h
-            printf '%s\n' '#pragma once' '#include <hermes/inspector/RuntimeAdapter.h>' 'namespace facebook { namespace hermes { namespace inspector { namespace chrome {' 'inline void registerInspector(std::shared_ptr<RuntimeAdapter>, const std::string &, bool) {}' '}}}} // namespace' > ../node_modules/react-native/ReactCommon/hermes/inspector/chrome/Registration.h
-            mkdir -p ../node_modules/react-native/ReactCommon/hermes/inspector-modern/chrome
-            printf '%s\n' '#pragma once' '#include <hermes/inspector/RuntimeAdapter.h>' 'namespace facebook { namespace hermes { namespace inspector_modern { namespace chrome {' 'inline void registerInspector(std::shared_ptr<facebook::hermes::inspector::RuntimeAdapter>, const std::string &, bool) {}' '}}}} // namespace' > ../node_modules/react-native/ReactCommon/hermes/inspector-modern/chrome/Registration.h
+            # Remove Hermes-specific runtime (incompatible with RN 0.86 prebuilt Hermes)
+            rm -rf ../node_modules/react-native-reanimated/Common/cpp/ReanimatedRuntime/ReanimatedHermesRuntime.cpp ../node_modules/react-native-reanimated/Common/cpp/ReanimatedRuntime/ReanimatedHermesRuntime.h
+            # (Hermes inspector stubs no longer needed - ReanimatedHermesRuntime files removed)
             set +e
             # export USE_FRAMEWORKS=static
             rm -rf Pods Podfile.lock  # Fresh install
