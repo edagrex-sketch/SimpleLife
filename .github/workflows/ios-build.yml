@@ -192,8 +192,8 @@ jobs:
           # Use custom DerivedData path for caching
           DERIVED_DATA_PATH="${GITHUB_WORKSPACE}/DerivedData"
 
-          # Debug: list what's in ios/
-          ls -la "$IOS_PATH"
+          # Debug: list what's in current directory
+          ls -la
           echo "Workspace: $WORKSPACE"
           echo "Project: $PROJECT"
           echo "Scheme: $SCHEME"
