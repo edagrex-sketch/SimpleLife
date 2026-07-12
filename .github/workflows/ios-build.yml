@@ -162,9 +162,9 @@ jobs:
             echo "Running pod install (with repo update)..."
             # Patch incompatibilities with RN 0.86 + Xcode 26
             rm -rf ../node_modules/react-native-reanimated/Common/cpp/Fabric
-            # Remove Hermes-specific runtime (incompatible with RN 0.86 prebuilt Hermes)
-            rm -rf ../node_modules/react-native-reanimated/Common/cpp/ReanimatedRuntime/ReanimatedHermesRuntime.cpp ../node_modules/react-native-reanimated/Common/cpp/ReanimatedRuntime/ReanimatedHermesRuntime.h
-            # (Hermes inspector stubs no longer needed - ReanimatedHermesRuntime files removed)
+            # Disable Hermes debugger in reanimated (prebuilt Hermes in RN 0.86 lacks inspector headers)
+            sed -i '' '1s/^/#define HERMES_ENABLE_DEBUGGER 0\n/' ../node_modules/react-native-reanimated/Common/cpp/ReanimatedRuntime/ReanimatedHermesRuntime.h
+            sed -i '' '1s/^/#define HERMES_ENABLE_DEBUGGER 0\n/' ../node_modules/react-native-reanimated/Common/cpp/ReanimatedRuntime/ReanimatedHermesRuntime.cpp
             set +e
             # export USE_FRAMEWORKS=static
             rm -rf Pods Podfile.lock  # Fresh install
