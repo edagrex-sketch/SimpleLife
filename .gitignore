@@ -73,3 +73,7 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+secrets.properties
+build_log.txt
+nul
+app/google-services.json
