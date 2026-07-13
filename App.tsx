@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, Pressable, View, StatusBar } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -26,6 +32,27 @@ function AuthFlow() {
     <LoginScreen onSwitchToRegister={() => setShowLogin(false)} />
   ) : (
     <RegisterScreen onSwitchToLogin={() => setShowLogin(true)} />
+  );
+}
+
+function AnimatedScreen({ children, tabKey }: { children: React.ReactNode; tabKey: string }) {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(12);
+
+  React.useEffect(() => {
+    opacity.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.cubic) });
+    translateY.value = withTiming(0, { duration: 300, easing: Easing.out(Easing.cubic) });
+  }, [tabKey]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return (
+    <Animated.View style={[{ flex: 1 }, animatedStyle]}>
+      {children}
+    </Animated.View>
   );
 }
 
@@ -64,7 +91,9 @@ function MainApp() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
-      {renderScreen()}
+      <AnimatedScreen key={currentTab} tabKey={currentTab}>
+        {renderScreen()}
+      </AnimatedScreen>
       <FloatingTabBar
         activeTab={currentTab}
         onTabPress={setCurrentTab}

@@ -8,11 +8,14 @@ import {
   Modal,
   StyleSheet,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { COLORS, EXPENSE_CATEGORIES } from '../utils/colors';
 import { useExpenses } from '../context/ExpensesContext';
 import { today, formatAmount } from '../utils/helpers';
+import { useFadeIn } from '../hooks/useFadeIn';
+import { useStagger } from '../hooks/useStagger';
 
 const CATEGORY_BADGES: Record<string, { label: string; color: string; bg: string }> = {
   Alimentos: { label: 'ALIMENTOS', color: '#C56A49', bg: '#FDEEE8' },
@@ -40,6 +43,12 @@ export default function ExpensesScreen() {
     activeFilter === 'Todos'
       ? expenses
       : expenses.filter((e) => e.category === activeFilter);
+
+  const headerAnim = useFadeIn({ delay: 0, translateY: 15 });
+  const titleAnim = useFadeIn({ delay: 100, translateY: 15 });
+  const budgetAnim = useFadeIn({ delay: 200, translateY: 20 });
+  const filtersAnim = useFadeIn({ delay: 300, translateY: 15 });
+  const sectionAnim = useFadeIn({ delay: 400, translateY: 15 });
 
   const handleAdd = async () => {
     if (!title.trim() || !amount) return;
@@ -70,20 +79,22 @@ export default function ExpensesScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
-      <View style={styles.header}>
+      <Animated.View style={[styles.header, headerAnim.animatedStyle]}>
         <View>
           <Text style={styles.headerAppName}>VidaSimple</Text>
         </View>
         <Pressable style={styles.bellButton}>
           <Ionicons name="notifications-outline" size={22} color="#3D2B1F" />
         </Pressable>
-      </View>
+      </Animated.View>
 
-      <Text style={styles.title}>Gastos</Text>
+      <Animated.View style={titleAnim.animatedStyle}>
+        <Text style={styles.title}>Gastos</Text>
+      </Animated.View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         {/* Budget Card */}
-        <View style={styles.budgetCard}>
+        <Animated.View style={[styles.budgetCard, budgetAnim.animatedStyle]}>
           <View style={styles.budgetHeader}>
             <Text style={styles.budgetLabel}>Gasto Total Mensual</Text>
             <View style={styles.budgetBadge}>
@@ -116,61 +127,68 @@ export default function ExpensesScreen() {
               </Text> este mes
             </Text>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Filters */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filtersRow}
-          contentContainerStyle={styles.filtersContent}
-        >
-          {FILTERS.map((f) => (
-            <Pressable
-              key={f}
-              style={[styles.filterChip, activeFilter === f && styles.filterChipActive]}
-              onPress={() => setActiveFilter(f)}
-            >
-              <Text
-                style={[styles.filterText, activeFilter === f && styles.filterTextActive]}
+        <Animated.View style={filtersAnim.animatedStyle}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filtersRow}
+            contentContainerStyle={styles.filtersContent}
+          >
+            {FILTERS.map((f) => (
+              <Pressable
+                key={f}
+                style={[styles.filterChip, activeFilter === f && styles.filterChipActive]}
+                onPress={() => setActiveFilter(f)}
               >
-                {f}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
+                <Text
+                  style={[styles.filterText, activeFilter === f && styles.filterTextActive]}
+                >
+                  {f}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </Animated.View>
 
         {/* Transactions */}
-        <Text style={styles.sectionTitle}>RECIENTE</Text>
+        <Animated.View style={sectionAnim.animatedStyle}>
+          <Text style={styles.sectionTitle}>RECIENTE</Text>
 
-        {filteredExpenses.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Ionicons name="wallet-outline" size={40} color="#CCC" />
-            <Text style={styles.emptyText}>Sin gastos registrados</Text>
-          </View>
-        ) : (
-          filteredExpenses.map((expense) => {
-            const badge = CATEGORY_BADGES[expense.category || 'Otros'] || CATEGORY_BADGES.Otros;
-            return (
-              <View key={expense.id} style={styles.transactionCard}>
-                <View style={styles.transactionLeft}>
-                  <View style={[styles.transactionIcon, { backgroundColor: badge.bg }]}>
-                    <Ionicons name="receipt-outline" size={18} color={badge.color} />
-                  </View>
-                  <View>
-                    <Text style={styles.transactionTitle}>{expense.title}</Text>
-                    <Text style={styles.transactionDate}>
-                      {expense.date ? formatExpenseDate(expense.date) : ''}
+          {filteredExpenses.length === 0 ? (
+            <View style={styles.emptyCard}>
+              <Ionicons name="wallet-outline" size={40} color="#CCC" />
+              <Text style={styles.emptyText}>Sin gastos registrados</Text>
+            </View>
+          ) : (
+            filteredExpenses.map((expense, index) => {
+              const badge = CATEGORY_BADGES[expense.category || 'Otros'] || CATEGORY_BADGES.Otros;
+              const itemAnim = useStagger({ index, staggerDelay: 60, translateY: 16 });
+              return (
+                <Animated.View key={expense.id} style={itemAnim.animatedStyle}>
+                  <View style={styles.transactionCard}>
+                    <View style={styles.transactionLeft}>
+                      <View style={[styles.transactionIcon, { backgroundColor: badge.bg }]}>
+                        <Ionicons name="receipt-outline" size={18} color={badge.color} />
+                      </View>
+                      <View>
+                        <Text style={styles.transactionTitle}>{expense.title}</Text>
+                        <Text style={styles.transactionDate}>
+                          {expense.date ? formatExpenseDate(expense.date) : ''}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={styles.transactionAmount}>
+                      -${expense.amount.toFixed(2)}
                     </Text>
                   </View>
-                </View>
-                <Text style={styles.transactionAmount}>
-                  -${expense.amount.toFixed(2)}
-                </Text>
-              </View>
-            );
-          })
-        )}
+                </Animated.View>
+              );
+            })
+          )}
+        </Animated.View>
 
         <View style={{ height: 100 }} />
       </ScrollView>

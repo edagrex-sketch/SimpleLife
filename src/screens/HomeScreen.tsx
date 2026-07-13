@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { COLORS } from '../utils/colors';
@@ -7,6 +8,8 @@ import { useAuth } from '../context/AuthContext';
 import { useTasks } from '../context/TaskContext';
 import { useCalendar } from '../context/CalendarContext';
 import { today, getMonthDays, MONTHS, DAYS, formatDate } from '../utils/helpers';
+import { useFadeIn } from '../hooks/useFadeIn';
+import { useStagger } from '../hooks/useStagger';
 
 export default function HomeScreen() {
   const { profile } = useAuth();
@@ -23,6 +26,10 @@ export default function HomeScreen() {
   const todayTasks = tasks.filter((t) => t.due_date === todayStr && !t.is_done);
   const dayEvents = events.filter((e) => e.event_date === todayStr);
 
+  const headerAnim = useFadeIn({ delay: 0, translateY: 15 });
+  const calendarAnim = useFadeIn({ delay: 200, translateY: 20 });
+  const eventsAnim = useFadeIn({ delay: 350, translateY: 20 });
+
   const hasEvent = (d: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     return events.some((e) => e.event_date === dateStr);
@@ -38,7 +45,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
-      <View style={styles.header}>
+      <Animated.View style={[styles.header, headerAnim.animatedStyle]}>
         <Pressable style={styles.menuButton}>
           <Ionicons name="menu" size={24} color="#3D2B1F" />
         </Pressable>
@@ -46,102 +53,109 @@ export default function HomeScreen() {
         <Pressable style={styles.bellButton}>
           <Ionicons name="notifications-outline" size={22} color="#3D2B1F" />
         </Pressable>
-      </View>
+      </Animated.View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         {/* Calendar Section */}
-        <View style={styles.sectionLabel}>
-          <Text style={styles.sectionLabelText}>PLANEACIÓN</Text>
-        </View>
-        <Text style={styles.sectionTitle}>Calendario</Text>
+        <Animated.View style={calendarAnim.animatedStyle}>
+          <View style={styles.sectionLabel}>
+            <Text style={styles.sectionLabelText}>PLANEACIÓN</Text>
+          </View>
+          <Text style={styles.sectionTitle}>Calendario</Text>
 
-        <View style={styles.calendarCard}>
-          {/* Month Header */}
-          <View style={styles.monthHeader}>
-            <Text style={styles.monthTitle}>
-              {MONTHS[month]} {year}
-            </Text>
-            <View style={styles.monthArrows}>
-              <Pressable style={styles.arrowButton}>
-                <Ionicons name="chevron-back" size={18} color="#C56A49" />
-              </Pressable>
-              <Pressable style={styles.arrowButton}>
-                <Ionicons name="chevron-forward" size={18} color="#C56A49" />
-              </Pressable>
+          <View style={styles.calendarCard}>
+            {/* Month Header */}
+            <View style={styles.monthHeader}>
+              <Text style={styles.monthTitle}>
+                {MONTHS[month]} {year}
+              </Text>
+              <View style={styles.monthArrows}>
+                <Pressable style={styles.arrowButton}>
+                  <Ionicons name="chevron-back" size={18} color="#C56A49" />
+                </Pressable>
+                <Pressable style={styles.arrowButton}>
+                  <Ionicons name="chevron-forward" size={18} color="#C56A49" />
+                </Pressable>
+              </View>
             </View>
-          </View>
 
-          {/* Weekday Headers */}
-          <View style={styles.weekdays}>
-            {DAYS.map((d) => (
-              <Text key={d} style={styles.weekday}>{d}</Text>
-            ))}
-          </View>
+            {/* Weekday Headers */}
+            <View style={styles.weekdays}>
+              {DAYS.map((d) => (
+                <Text key={d} style={styles.weekday}>{d}</Text>
+              ))}
+            </View>
 
-          {/* Calendar Grid */}
-          <View style={styles.grid}>
-            {days.map((d, i) => (
-              <View key={i} style={styles.dayCell}>
-                {d ? (
-                  <Pressable
-                    style={[
-                      styles.dayButton,
-                      d === todayNum && styles.dayButtonActive,
-                    ]}
-                  >
-                    <Text
+            {/* Calendar Grid */}
+            <View style={styles.grid}>
+              {days.map((d, i) => (
+                <View key={i} style={styles.dayCell}>
+                  {d ? (
+                    <Pressable
                       style={[
-                        styles.dayText,
-                        d === todayNum && styles.dayTextActive,
+                        styles.dayButton,
+                        d === todayNum && styles.dayButtonActive,
                       ]}
                     >
-                      {d}
-                    </Text>
-                    {hasEvent(d) && <View style={styles.dayDot} />}
-                  </Pressable>
-                ) : (
-                  <View style={styles.dayEmpty} />
-                )}
-              </View>
-            ))}
+                      <Text
+                        style={[
+                          styles.dayText,
+                          d === todayNum && styles.dayTextActive,
+                        ]}
+                      >
+                        {d}
+                      </Text>
+                      {hasEvent(d) && <View style={styles.dayDot} />}
+                    </Pressable>
+                  ) : (
+                    <View style={styles.dayEmpty} />
+                  )}
+                </View>
+              ))}
+            </View>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Events Section */}
-        <View style={styles.eventsHeader}>
-          <Text style={styles.eventsSectionTitle}>Eventos de hoy</Text>
-          <Text style={styles.eventsCount}>{dayEvents.length} actividades</Text>
-        </View>
-
-        {dayEvents.length === 0 ? (
-          <View style={styles.emptyEvents}>
-            <Ionicons name="calendar-outline" size={32} color="#CCC" />
-            <Text style={styles.emptyText}>No hay eventos hoy</Text>
+        <Animated.View style={eventsAnim.animatedStyle}>
+          <View style={styles.eventsHeader}>
+            <Text style={styles.eventsSectionTitle}>Eventos de hoy</Text>
+            <Text style={styles.eventsCount}>{dayEvents.length} actividades</Text>
           </View>
-        ) : (
-          dayEvents.map((event) => (
-            <View key={event.id} style={styles.eventCard}>
-              <View
-                style={[
-                  styles.eventBorder,
-                  { backgroundColor: EVENT_COLORS[event.category || 'General'] || '#C56A49' },
-                ]}
-              />
-              <View style={styles.eventContent}>
-                <Text style={styles.eventCategory}>
-                  {(event.category || 'General').toUpperCase()}
-                </Text>
-                <Text style={styles.eventTitle}>{event.title}</Text>
-                {event.start_time && (
-                  <Text style={styles.eventTime}>
-                    {event.start_time}
-                    {event.end_time ? ` - ${event.end_time}` : ''}
-                  </Text>
-                )}
-              </View>
+
+          {dayEvents.length === 0 ? (
+            <View style={styles.emptyEvents}>
+              <Ionicons name="calendar-outline" size={32} color="#CCC" />
+              <Text style={styles.emptyText}>No hay eventos hoy</Text>
             </View>
-          ))
-        )}
+          ) : (
+            dayEvents.map((event, index) => {
+              const itemAnim = useStagger({ index, staggerDelay: 80, translateY: 16 });
+              return (
+                <Animated.View key={event.id} style={[styles.eventCard, itemAnim.animatedStyle]}>
+                  <View
+                    style={[
+                      styles.eventBorder,
+                      { backgroundColor: EVENT_COLORS[event.category || 'General'] || '#C56A49' },
+                    ]}
+                  />
+                  <View style={styles.eventContent}>
+                    <Text style={styles.eventCategory}>
+                      {(event.category || 'General').toUpperCase()}
+                    </Text>
+                    <Text style={styles.eventTitle}>{event.title}</Text>
+                    {event.start_time && (
+                      <Text style={styles.eventTime}>
+                        {event.start_time}
+                        {event.end_time ? ` - ${event.end_time}` : ''}
+                      </Text>
+                    )}
+                  </View>
+                </Animated.View>
+              );
+            })
+          )}
+        </Animated.View>
 
         <View style={{ height: 100 }} />
       </ScrollView>

@@ -9,10 +9,12 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { COLORS } from '../utils/colors';
 import { useAuth } from '../context/AuthContext';
+import { useFadeIn } from '../hooks/useFadeIn';
 
 interface Props {
   onSwitchToRegister: () => void;
@@ -24,6 +26,12 @@ export default function LoginScreen({ onSwitchToRegister }: Props) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const logoAnim = useFadeIn({ delay: 0, translateY: 30 });
+  const titleAnim = useFadeIn({ delay: 150, translateY: 20 });
+  const cardAnim = useFadeIn({ delay: 300, translateY: 25 });
+  const socialAnim = useFadeIn({ delay: 450, translateY: 20 });
+  const registerAnim = useFadeIn({ delay: 550, translateY: 15 });
 
   const handleLogin = async () => {
     if (!email || !password) return;
@@ -40,18 +48,20 @@ export default function LoginScreen({ onSwitchToRegister }: Props) {
         style={styles.inner}
       >
         {/* Logo */}
-        <View style={styles.logoContainer}>
+        <Animated.View style={[styles.logoContainer, logoAnim.animatedStyle]}>
           <View style={styles.logoIcon}>
             <Ionicons name="sunny" size={28} color="#FFFFFF" />
           </View>
-        </View>
+        </Animated.View>
 
         {/* Title */}
-        <Text style={styles.title}>VidaSimple</Text>
-        <Text style={styles.subtitle}>Tu vida, simplificada</Text>
+        <Animated.View style={titleAnim.animatedStyle}>
+          <Text style={styles.title}>VidaSimple</Text>
+          <Text style={styles.subtitle}>Tu vida, simplificada</Text>
+        </Animated.View>
 
         {/* Form Card */}
-        <View style={styles.card}>
+        <Animated.View style={[styles.card, cardAnim.animatedStyle]}>
           <Text style={styles.inputLabel}>Correo Electrónica</Text>
           <View style={styles.inputContainer}>
             <TextInput
@@ -109,7 +119,7 @@ export default function LoginScreen({ onSwitchToRegister }: Props) {
           </View>
 
           {/* Social Buttons */}
-          <View style={styles.socialRow}>
+          <Animated.View style={[styles.socialRow, socialAnim.animatedStyle]}>
             <Pressable style={styles.socialButton}>
               <Ionicons name="logo-google" size={20} color="#333333" />
               <Text style={styles.socialButtonText}>Google</Text>
@@ -118,16 +128,18 @@ export default function LoginScreen({ onSwitchToRegister }: Props) {
               <Ionicons name="logo-apple" size={22} color="#333333" />
               <Text style={styles.socialButtonText}>Apple</Text>
             </Pressable>
-          </View>
-        </View>
+          </Animated.View>
+        </Animated.View>
 
         {/* Register Link */}
-        <Pressable onPress={onSwitchToRegister} style={styles.registerLink}>
-          <Text style={styles.registerText}>
-            ¿No tienes cuenta?{' '}
-            <Text style={styles.registerBold}>Regístrate</Text>
-          </Text>
-        </Pressable>
+        <Animated.View style={[styles.registerLink, registerAnim.animatedStyle]}>
+          <Pressable onPress={onSwitchToRegister}>
+            <Text style={styles.registerText}>
+              ¿No tienes cuenta?{' '}
+              <Text style={styles.registerBold}>Regístrate</Text>
+            </Text>
+          </Pressable>
+        </Animated.View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

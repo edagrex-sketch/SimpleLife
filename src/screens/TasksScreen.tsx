@@ -8,12 +8,15 @@ import {
   Modal,
   StyleSheet,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { COLORS } from '../utils/colors';
 import { useTasks } from '../context/TaskContext';
 import { TaskPriority } from '../types';
 import { today } from '../utils/helpers';
+import { useFadeIn } from '../hooks/useFadeIn';
+import { useStagger } from '../hooks/useStagger';
 
 const FILTERS = ['Todas', 'Hoy', 'Pendientes', 'Completadas'];
 
@@ -31,6 +34,10 @@ export default function TasksScreen() {
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [dueDate, setDueDate] = useState(today());
+
+  const headerAnim = useFadeIn({ delay: 0, translateY: 15 });
+  const titleAnim = useFadeIn({ delay: 100, translateY: 15 });
+  const filtersAnim = useFadeIn({ delay: 200, translateY: 15 });
 
   const filteredTasks = tasks.filter((t) => {
     switch (filter) {
@@ -65,7 +72,7 @@ export default function TasksScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
-      <View style={styles.header}>
+      <Animated.View style={[styles.header, headerAnim.animatedStyle]}>
         <Pressable style={styles.menuButton}>
           <Ionicons name="menu" size={24} color="#3D2B1F" />
         </Pressable>
@@ -73,9 +80,9 @@ export default function TasksScreen() {
         <Pressable style={styles.bellButton}>
           <Ionicons name="notifications-outline" size={22} color="#3D2B1F" />
         </Pressable>
-      </View>
+      </Animated.View>
 
-      <View style={styles.titleRow}>
+      <Animated.View style={[styles.titleRow, titleAnim.animatedStyle]}>
         <View>
           <Text style={styles.title}>Tareas</Text>
           <Text style={styles.subtitle}>Organiza tu día con intención</Text>
@@ -83,29 +90,31 @@ export default function TasksScreen() {
         <Pressable style={styles.sortButton}>
           <Ionicons name="swap-vertical" size={18} color="#C56A49" />
         </Pressable>
-      </View>
+      </Animated.View>
 
       {/* Filters */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filtersRow}
-        contentContainerStyle={styles.filtersContent}
-      >
-        {FILTERS.map((f) => (
-          <Pressable
-            key={f}
-            style={[styles.filterChip, filter === f && styles.filterChipActive]}
-            onPress={() => setFilter(f)}
-          >
-            <Text
-              style={[styles.filterText, filter === f && styles.filterTextActive]}
+      <Animated.View style={filtersAnim.animatedStyle}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filtersRow}
+          contentContainerStyle={styles.filtersContent}
+        >
+          {FILTERS.map((f) => (
+            <Pressable
+              key={f}
+              style={[styles.filterChip, filter === f && styles.filterChipActive]}
+              onPress={() => setFilter(f)}
             >
-              {f}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
+              <Text
+                style={[styles.filterText, filter === f && styles.filterTextActive]}
+              >
+                {f}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </Animated.View>
 
       {/* Tasks List */}
       <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
@@ -116,35 +125,37 @@ export default function TasksScreen() {
             <Text style={styles.emptyText}>Crea tu primera tarea</Text>
           </View>
         ) : (
-          filteredTasks.map((task) => {
+          filteredTasks.map((task, index) => {
             const pConfig = PRIORITY_CONFIG[task.priority || 'medium'];
+            const itemAnim = useStagger({ index, staggerDelay: 60, translateY: 16 });
             return (
-              <Pressable
-                key={task.id}
-                style={styles.taskCard}
-                onPress={() => toggleTask(task.id)}
-              >
-                <View style={[styles.checkbox, task.is_done && styles.checkboxDone]}>
-                  {task.is_done && (
-                    <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-                  )}
-                </View>
-                <View style={styles.taskContent}>
-                  <Text style={[styles.taskTitle, task.is_done && styles.taskDone]}>
-                    {task.title}
-                  </Text>
-                  {task.description ? (
-                    <Text style={styles.taskDescription} numberOfLines={1}>
-                      {task.description}
+              <Animated.View key={task.id} style={itemAnim.animatedStyle}>
+                <Pressable
+                  style={styles.taskCard}
+                  onPress={() => toggleTask(task.id)}
+                >
+                  <View style={[styles.checkbox, task.is_done && styles.checkboxDone]}>
+                    {task.is_done && (
+                      <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                    )}
+                  </View>
+                  <View style={styles.taskContent}>
+                    <Text style={[styles.taskTitle, task.is_done && styles.taskDone]}>
+                      {task.title}
                     </Text>
-                  ) : null}
-                </View>
-                <View style={[styles.priorityBadge, { backgroundColor: pConfig.bg }]}>
-                  <Text style={[styles.priorityText, { color: pConfig.color }]}>
-                    {pConfig.label}
-                  </Text>
-                </View>
-              </Pressable>
+                    {task.description ? (
+                      <Text style={styles.taskDescription} numberOfLines={1}>
+                        {task.description}
+                      </Text>
+                    ) : null}
+                  </View>
+                  <View style={[styles.priorityBadge, { backgroundColor: pConfig.bg }]}>
+                    <Text style={[styles.priorityText, { color: pConfig.color }]}>
+                      {pConfig.label}
+                    </Text>
+                  </View>
+                </Pressable>
+              </Animated.View>
             );
           })
         )}

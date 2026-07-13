@@ -1,9 +1,11 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import Animated from 'react-native-reanimated';
 import GlassBox from './GlassBox';
 import { Expense } from '../types';
 import { COLORS, CATEGORY_COLORS } from '../utils/colors';
 import { formatDate, formatAmount } from '../utils/helpers';
+import { useScalePress } from '../hooks/useScalePress';
 
 interface ExpenseCardProps {
   expense: Expense;
@@ -12,22 +14,25 @@ interface ExpenseCardProps {
 
 export default function ExpenseCard({ expense, onDelete }: ExpenseCardProps) {
   const catColor = CATEGORY_COLORS[expense.category || 'Otros'] || COLORS.textTertiary;
+  const { animatedStyle, onPressIn, onPressOut } = useScalePress();
 
   return (
-    <Pressable onLongPress={onDelete}>
-      <GlassBox style={styles.card}>
-        <View style={styles.row}>
-          <View style={[styles.categoryDot, { backgroundColor: catColor }]} />
-          <View style={styles.content}>
-            <View style={styles.topRow}>
-              <Text style={styles.title} numberOfLines={1}>{expense.title}</Text>
-              <Text style={styles.amount}>{formatAmount(expense.amount)}</Text>
+    <Pressable onLongPress={onDelete} onPressIn={onPressIn} onPressOut={onPressOut}>
+      <Animated.View style={animatedStyle}>
+        <GlassBox style={styles.card}>
+          <View style={styles.row}>
+            <View style={[styles.categoryDot, { backgroundColor: catColor }]} />
+            <View style={styles.content}>
+              <View style={styles.topRow}>
+                <Text style={styles.title} numberOfLines={1}>{expense.title}</Text>
+                <Text style={styles.amount}>{formatAmount(expense.amount)}</Text>
+              </View>
+              <Text style={styles.category}>{expense.category || 'Otros'}</Text>
+              {expense.date && <Text style={styles.date}>{formatDate(expense.date)}</Text>}
             </View>
-            <Text style={styles.category}>{expense.category || 'Otros'}</Text>
-            {expense.date && <Text style={styles.date}>{formatDate(expense.date)}</Text>}
           </View>
-        </View>
-      </GlassBox>
+        </GlassBox>
+      </Animated.View>
     </Pressable>
   );
 }

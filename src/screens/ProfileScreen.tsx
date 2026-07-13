@@ -1,11 +1,14 @@
 import React from 'react';
 import { View, Text, ScrollView, Pressable, Alert, StyleSheet } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { COLORS } from '../utils/colors';
 import { useAuth } from '../context/AuthContext';
 import { useTasks } from '../context/TaskContext';
 import { useExpenses } from '../context/ExpensesContext';
+import { useFadeIn } from '../hooks/useFadeIn';
+import { useStagger } from '../hooks/useStagger';
 
 export default function ProfileScreen() {
   const { profile, signOut } = useAuth();
@@ -13,6 +16,12 @@ export default function ProfileScreen() {
   const { expenses } = useExpenses();
 
   const completedTasks = tasks.filter((t) => t.is_done).length;
+
+  const headerAnim = useFadeIn({ delay: 0, translateY: 15 });
+  const avatarAnim = useFadeIn({ delay: 150, translateY: 25 });
+  const statsAnim = useFadeIn({ delay: 300, translateY: 20 });
+  const menuAnim = useFadeIn({ delay: 450, translateY: 20 });
+  const logoutAnim = useFadeIn({ delay: 550, translateY: 15 });
 
   const handleSignOut = () => {
     Alert.alert('Cerrar Sesión', '¿Estás seguro?', [
@@ -31,7 +40,7 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
-      <View style={styles.header}>
+      <Animated.View style={[styles.header, headerAnim.animatedStyle]}>
         <Pressable style={styles.menuButton}>
           <Ionicons name="menu" size={24} color="#3D2B1F" />
         </Pressable>
@@ -39,11 +48,11 @@ export default function ProfileScreen() {
         <Pressable style={styles.bellButton}>
           <Ionicons name="notifications-outline" size={22} color="#3D2B1F" />
         </Pressable>
-      </View>
+      </Animated.View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         {/* Avatar */}
-        <View style={styles.avatarSection}>
+        <Animated.View style={[styles.avatarSection, avatarAnim.animatedStyle]}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
               {profile?.name?.charAt(0)?.toUpperCase() || 'U'}
@@ -52,10 +61,10 @@ export default function ProfileScreen() {
           </View>
           <Text style={styles.name}>{profile?.name || 'Usuario'}</Text>
           <Text style={styles.email}>{profile?.email || ''}</Text>
-        </View>
+        </Animated.View>
 
         {/* Stats Grid */}
-        <View style={styles.statsGrid}>
+        <Animated.View style={[styles.statsGrid, statsAnim.animatedStyle]}>
           <View style={styles.statCard}>
             <View style={styles.statIconContainer}>
               <Ionicons name="flame-outline" size={20} color="#C56A49" />
@@ -84,27 +93,34 @@ export default function ProfileScreen() {
             <Text style={styles.statNumber}>12</Text>
             <Text style={styles.statLabel}>Logros</Text>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Menu Items */}
-        <View style={styles.menuCard}>
-          {menuItems.map((item, index) => (
-            <React.Fragment key={item.label}>
-              <Pressable style={styles.menuItem}>
-                <Ionicons name={item.icon as any} size={20} color="#5A4A3A" />
-                <Text style={styles.menuLabel}>{item.label}</Text>
-                <Ionicons name="chevron-forward" size={18} color="#CCBBAA" />
-              </Pressable>
-              {index < menuItems.length - 1 && <View style={styles.menuDivider} />}
-            </React.Fragment>
-          ))}
-        </View>
+        <Animated.View style={[styles.menuCard, menuAnim.animatedStyle]}>
+          {menuItems.map((item, index) => {
+            const itemAnim = useStagger({ index, staggerDelay: 60, translateY: 12 });
+            return (
+              <React.Fragment key={item.label}>
+                <Animated.View style={itemAnim.animatedStyle}>
+                  <Pressable style={styles.menuItem}>
+                    <Ionicons name={item.icon as any} size={20} color="#5A4A3A" />
+                    <Text style={styles.menuLabel}>{item.label}</Text>
+                    <Ionicons name="chevron-forward" size={18} color="#CCBBAA" />
+                  </Pressable>
+                </Animated.View>
+                {index < menuItems.length - 1 && <View style={styles.menuDivider} />}
+              </React.Fragment>
+            );
+          })}
+        </Animated.View>
 
         {/* Logout */}
-        <Pressable style={styles.logoutButton} onPress={handleSignOut}>
-          <Ionicons name="log-out-outline" size={18} color="#AA9A8A" />
-          <Text style={styles.logoutText}>Cerrar sesión</Text>
-        </Pressable>
+        <Animated.View style={logoutAnim.animatedStyle}>
+          <Pressable style={styles.logoutButton} onPress={handleSignOut}>
+            <Ionicons name="log-out-outline" size={18} color="#AA9A8A" />
+            <Text style={styles.logoutText}>Cerrar sesión</Text>
+          </Pressable>
+        </Animated.View>
 
         <View style={{ height: 100 }} />
       </ScrollView>

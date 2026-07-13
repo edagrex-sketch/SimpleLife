@@ -102,7 +102,9 @@ jobs:
         if: (steps.detect.outputs.type == 'reactnative' || steps.detect.outputs.type == 'expo') && steps.node-modules-cache.outputs.cache-hit != 'true'
         run: npm install
 
-
+      - name: Link vector icons fonts
+        if: steps.detect.outputs.type == 'reactnative'
+        run: npx react-native-asset
 
       - name: Install certificate and provisioning profile
         if: inputs.use_signing

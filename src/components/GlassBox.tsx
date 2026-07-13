@@ -1,5 +1,12 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 
 interface GlassBoxProps {
   children: React.ReactNode;
@@ -9,9 +16,23 @@ interface GlassBoxProps {
 
 export default function GlassBox({ children, style, variant = 'light' }: GlassBoxProps) {
   const isDark = variant === 'dark';
+  const glowOpacity = useSharedValue(0.10);
+
+  React.useEffect(() => {
+    glowOpacity.value = withRepeat(
+      withTiming(0.18, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true
+    );
+  }, []);
+
+  const glowAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: glowOpacity.value,
+  }));
+
   return (
     <View style={[styles.container, isDark && styles.dark, style]}>
-      <View style={[styles.glow, isDark && styles.glowDark]} />
+      <Animated.View style={[styles.glow, isDark && styles.glowDark, glowAnimatedStyle]} />
       {children}
     </View>
   );

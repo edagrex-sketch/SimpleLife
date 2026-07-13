@@ -9,11 +9,13 @@ import {
   Alert,
   StyleSheet,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import SpaceCard from '../components/SpaceCard';
 import { COLORS, SHADOWS } from '../utils/colors';
 import { useSpaces } from '../context/SpacesContext';
+import { useFadeIn } from '../hooks/useFadeIn';
 
 export default function SpacesScreen() {
   const { spaces, createSpace, joinSpace, leaveSpace } = useSpaces();
@@ -21,6 +23,10 @@ export default function SpacesScreen() {
   const [showJoin, setShowJoin] = useState(false);
   const [name, setName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
+
+  const headerAnim = useFadeIn({ delay: 0, translateY: 15 });
+  const actionsAnim = useFadeIn({ delay: 150, translateY: 20 });
+  const listAnim = useFadeIn({ delay: 300, translateY: 20 });
 
   const handleCreate = async () => {
     if (!name.trim()) return;
@@ -54,17 +60,17 @@ export default function SpacesScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
-      <View style={styles.header}>
+      <Animated.View style={[styles.header, headerAnim.animatedStyle]}>
         <View>
           <Text style={styles.title}>Espacios</Text>
           <Text style={styles.subtitle}>
             {spaces.length} {spaces.length === 1 ? 'espacio' : 'espacios'}
           </Text>
         </View>
-      </View>
+      </Animated.View>
 
       {/* Action Buttons */}
-      <View style={styles.actions}>
+      <Animated.View style={[styles.actions, actionsAnim.animatedStyle]}>
         <Pressable
           style={styles.joinButton}
           onPress={() => setShowJoin(true)}
@@ -79,38 +85,37 @@ export default function SpacesScreen() {
           <Ionicons name="add" size={18} color="#FFFFFF" />
           <Text style={styles.createButtonText}>Crear</Text>
         </Pressable>
-      </View>
+      </Animated.View>
 
       {/* Spaces List */}
-      <ScrollView
-        style={styles.list}
-        showsVerticalScrollIndicator={false}
-      >
-        {spaces.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <View style={styles.emptyIconContainer}>
-              <Ionicons
-                name="people-outline"
-                size={48}
-                color={COLORS.textTertiary}
-              />
+      <Animated.View style={[styles.list, listAnim.animatedStyle]}>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {spaces.length === 0 ? (
+            <View style={styles.emptyCard}>
+              <View style={styles.emptyIconContainer}>
+                <Ionicons
+                  name="people-outline"
+                  size={48}
+                  color={COLORS.textTertiary}
+                />
+              </View>
+              <Text style={styles.emptyTitle}>Sin espacios</Text>
+              <Text style={styles.emptyText}>
+                Crea o únete a un espacio compartido{'\n'}para colaborar con otros
+              </Text>
             </View>
-            <Text style={styles.emptyTitle}>Sin espacios</Text>
-            <Text style={styles.emptyText}>
-              Crea o únete a un espacio compartido{'\n'}para colaborar con otros
-            </Text>
-          </View>
-        ) : (
-          spaces.map((space) => (
-            <SpaceCard
-              key={space.id}
-              space={space}
-              onPress={() => handleLeave(space.id)}
-            />
-          ))
-        )}
-        <View style={{ height: 120 }} />
-      </ScrollView>
+          ) : (
+            spaces.map((space) => (
+              <SpaceCard
+                key={space.id}
+                space={space}
+                onPress={() => handleLeave(space.id)}
+              />
+            ))
+          )}
+          <View style={{ height: 120 }} />
+        </ScrollView>
+      </Animated.View>
 
       {/* Create Modal */}
       <Modal visible={showCreate} animationType="slide" transparent>

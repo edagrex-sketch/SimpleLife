@@ -8,12 +8,14 @@ import {
   Modal,
   StyleSheet,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import EventCard from '../components/EventCard';
 import { COLORS } from '../utils/colors';
 import { useCalendar } from '../context/CalendarContext';
 import { MONTHS, DAYS, getMonthDays, formatDate } from '../utils/helpers';
+import { useFadeIn } from '../hooks/useFadeIn';
 
 export default function CalendarScreen() {
   const { events, addEvent, deleteEvent } = useCalendar();
@@ -39,6 +41,10 @@ export default function CalendarScreen() {
   const [description, setDescription] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
+
+  const headerAnim = useFadeIn({ delay: 0, translateY: 15 });
+  const calendarAnim = useFadeIn({ delay: 150, translateY: 20 });
+  const eventsAnim = useFadeIn({ delay: 300, translateY: 20 });
 
   const handleAdd = async () => {
     if (!title.trim() || !selectedDate) return;
@@ -77,71 +83,73 @@ export default function CalendarScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
-      <View style={styles.header}>
+      <Animated.View style={[styles.header, headerAnim.animatedStyle]}>
         <View>
           <Text style={styles.title}>Calendario</Text>
           <Text style={styles.subtitle}>{events.length} eventos este mes</Text>
         </View>
-      </View>
+      </Animated.View>
 
-      {/* Month Navigation */}
-      <View style={styles.monthNav}>
-        <Pressable style={styles.navButton} onPress={prevMonth}>
-          <Ionicons name="chevron-back" size={22} color={COLORS.primary} />
-        </Pressable>
-        <Text style={styles.monthTitle}>
-          {MONTHS[month]} {year}
-        </Text>
-        <Pressable style={styles.navButton} onPress={nextMonth}>
-          <Ionicons name="chevron-forward" size={22} color={COLORS.primary} />
-        </Pressable>
-      </View>
-
-      {/* Weekday Headers */}
-      <View style={styles.weekdays}>
-        {DAYS.map((d) => (
-          <Text key={d} style={styles.weekday}>
-            {d}
+      {/* Month Navigation + Calendar */}
+      <Animated.View style={calendarAnim.animatedStyle}>
+        <View style={styles.monthNav}>
+          <Pressable style={styles.navButton} onPress={prevMonth}>
+            <Ionicons name="chevron-back" size={22} color={COLORS.primary} />
+          </Pressable>
+          <Text style={styles.monthTitle}>
+            {MONTHS[month]} {year}
           </Text>
-        ))}
-      </View>
+          <Pressable style={styles.navButton} onPress={nextMonth}>
+            <Ionicons name="chevron-forward" size={22} color={COLORS.primary} />
+          </Pressable>
+        </View>
 
-      {/* Calendar Grid */}
-      <View style={styles.grid}>
-        {days.map((d, i) => (
-          <Pressable
-            key={i}
-            style={[
-              styles.dayCell,
-              d === selectedDay && styles.dayCellActive,
-              isToday(d!) && styles.dayCellToday,
-            ]}
-            onPress={() => d && setSelectedDay(d)}
-            disabled={!d}
-          >
-            <Text
-              style={[
-                styles.dayText,
-                d === selectedDay && styles.dayTextActive,
-                isToday(d!) && !selectedDay && styles.dayTextToday,
-              ]}
-            >
+        {/* Weekday Headers */}
+        <View style={styles.weekdays}>
+          {DAYS.map((d) => (
+            <Text key={d} style={styles.weekday}>
               {d}
             </Text>
-            {d && hasEvent(d) && (
-              <View
+          ))}
+        </View>
+
+        {/* Calendar Grid */}
+        <View style={styles.grid}>
+          {days.map((d, i) => (
+            <Pressable
+              key={i}
+              style={[
+                styles.dayCell,
+                d === selectedDay && styles.dayCellActive,
+                isToday(d!) && styles.dayCellToday,
+              ]}
+              onPress={() => d && setSelectedDay(d)}
+              disabled={!d}
+            >
+              <Text
                 style={[
-                  styles.dayDot,
-                  d === selectedDay && styles.dayDotActive,
+                  styles.dayText,
+                  d === selectedDay && styles.dayTextActive,
+                  isToday(d!) && !selectedDay && styles.dayTextToday,
                 ]}
-              />
-            )}
-          </Pressable>
-        ))}
-      </View>
+              >
+                {d}
+              </Text>
+              {d && hasEvent(d) && (
+                <View
+                  style={[
+                    styles.dayDot,
+                    d === selectedDay && styles.dayDotActive,
+                  ]}
+                />
+              )}
+            </Pressable>
+          ))}
+        </View>
+      </Animated.View>
 
       {/* Events Section */}
-      <View style={styles.eventsSection}>
+      <Animated.View style={[styles.eventsSection, eventsAnim.animatedStyle]}>
         <View style={styles.eventsHeader}>
           <Text style={styles.eventsTitle}>
             {selectedDate ? formatDate(selectedDate) : 'Selecciona un día'}
@@ -173,7 +181,7 @@ export default function CalendarScreen() {
             ))
           )}
         </ScrollView>
-      </View>
+      </Animated.View>
 
       {/* Add Modal */}
       <Modal visible={showModal} animationType="slide" transparent>

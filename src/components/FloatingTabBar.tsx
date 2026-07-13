@@ -4,7 +4,11 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withRepeat,
+  withSequence,
+  withTiming,
   interpolate,
+  Easing,
 } from 'react-native-reanimated';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { COLORS, SHADOWS } from '../utils/colors';
@@ -47,14 +51,39 @@ export default function FloatingTabBar({
           />
         ))}
       </View>
+      <FABButton onPress={onFabPress} />
+    </View>
+  );
+}
+
+function FABButton({ onPress }: { onPress: () => void }) {
+  const pulse = useSharedValue(1);
+
+  React.useEffect(() => {
+    pulse.value = withRepeat(
+      withSequence(
+        withTiming(1.08, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      false
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulse.value }],
+  }));
+
+  return (
+    <Animated.View style={[styles.fabWrapper, animatedStyle]}>
       <TouchableOpacity
         style={styles.fab}
-        onPress={onFabPress}
+        onPress={onPress}
         activeOpacity={0.85}
       >
         <Ionicons name="add" size={32} color="#FFFFFF" />
       </TouchableOpacity>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -145,6 +174,10 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     marginTop: 2,
   },
+  fabWrapper: {
+    marginLeft: -8,
+    marginBottom: 2,
+  },
   fab: {
     width: 56,
     height: 56,
@@ -152,8 +185,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.textPrimary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: -8,
-    marginBottom: 2,
     ...SHADOWS.fab,
   },
 });

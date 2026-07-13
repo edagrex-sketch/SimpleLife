@@ -1,9 +1,11 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import Animated from 'react-native-reanimated';
 import GlassBox from './GlassBox';
 import { Task } from '../types';
 import { COLORS, PRIORITY_COLORS, PRIORITY_LABELS } from '../utils/colors';
 import { formatDateShort } from '../utils/helpers';
+import { useScalePress } from '../hooks/useScalePress';
 
 interface TaskCardProps {
   task: Task;
@@ -14,36 +16,39 @@ interface TaskCardProps {
 export default function TaskCard({ task, onToggle, onPress }: TaskCardProps) {
   const priorityColor = PRIORITY_COLORS[task.priority] || COLORS.textSecondary;
   const isDone = task.is_done;
+  const { animatedStyle, onPressIn, onPressOut } = useScalePress();
 
   return (
-    <Pressable onPress={onPress}>
-      <GlassBox style={[styles.card, isDone ? styles.doneCard : undefined]}>
-        <View style={styles.row}>
-          <Pressable onPress={onToggle} style={styles.checkbox}>
-            <View style={[styles.checkboxInner, isDone && styles.checkboxDone]}>
-              {isDone && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-          </Pressable>
-          <View style={styles.content}>
-            <Text style={[styles.title, isDone && styles.titleDone]} numberOfLines={1}>
-              {task.title}
-            </Text>
-            {task.description ? (
-              <Text style={styles.description} numberOfLines={1}>{task.description}</Text>
-            ) : null}
-            <View style={styles.meta}>
-              {task.due_date && (
-                <Text style={styles.date}>{formatDateShort(task.due_date)}</Text>
-              )}
-              <View style={[styles.priorityBadge, { backgroundColor: priorityColor + '20' }]}>
-                <Text style={[styles.priorityText, { color: priorityColor }]}>
-                  {PRIORITY_LABELS[task.priority]}
-                </Text>
+    <Pressable onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut}>
+      <Animated.View style={animatedStyle}>
+        <GlassBox style={[styles.card, isDone ? styles.doneCard : undefined]}>
+          <View style={styles.row}>
+            <Pressable onPress={onToggle} style={styles.checkbox}>
+              <View style={[styles.checkboxInner, isDone && styles.checkboxDone]}>
+                {isDone && <Text style={styles.checkmark}>✓</Text>}
+              </View>
+            </Pressable>
+            <View style={styles.content}>
+              <Text style={[styles.title, isDone && styles.titleDone]} numberOfLines={1}>
+                {task.title}
+              </Text>
+              {task.description ? (
+                <Text style={styles.description} numberOfLines={1}>{task.description}</Text>
+              ) : null}
+              <View style={styles.meta}>
+                {task.due_date && (
+                  <Text style={styles.date}>{formatDateShort(task.due_date)}</Text>
+                )}
+                <View style={[styles.priorityBadge, { backgroundColor: priorityColor + '20' }]}>
+                  <Text style={[styles.priorityText, { color: priorityColor }]}>
+                    {PRIORITY_LABELS[task.priority]}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
-        </View>
-      </GlassBox>
+        </GlassBox>
+      </Animated.View>
     </Pressable>
   );
 }
