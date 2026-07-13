@@ -2,175 +2,148 @@ import React from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { COLORS, SHADOWS } from '../utils/colors';
+import { COLORS } from '../utils/colors';
 import { useAuth } from '../context/AuthContext';
 import { useTasks } from '../context/TaskContext';
-import { today } from '../utils/helpers';
+import { useCalendar } from '../context/CalendarContext';
+import { today, getMonthDays, MONTHS, DAYS, formatDate } from '../utils/helpers';
 
 export default function HomeScreen() {
   const { profile } = useAuth();
   const { tasks } = useTasks();
+  const { events } = useCalendar();
 
-  const todayTasks = tasks.filter((t) => t.due_date === today() && !t.is_done);
-  const pendingTasks = tasks.filter((t) => !t.is_done);
-  const completedTasks = tasks.filter((t) => t.is_done);
-  const completionRate =
-    tasks.length > 0
-      ? Math.round((completedTasks.length / tasks.length) * 100)
-      : 0;
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const days = getMonthDays(year, month);
+  const todayNum = now.getDate();
+  const todayStr = today();
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Buenos días';
-    if (hour < 18) return 'Buenas tardes';
-    return 'Buenas noches';
+  const todayTasks = tasks.filter((t) => t.due_date === todayStr && !t.is_done);
+  const dayEvents = events.filter((e) => e.event_date === todayStr);
+
+  const hasEvent = (d: number) => {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    return events.some((e) => e.event_date === dateStr);
+  };
+
+  const EVENT_COLORS: Record<string, string> = {
+    Trabajo: '#C56A49',
+    Social: '#91AC9F',
+    Salud: '#DFAD6D',
+    General: '#8A7A6A',
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>
-              {getGreeting()}, {profile?.name?.split(' ')[0] || 'amigo'}
-            </Text>
-            <Text style={styles.date}>
-              {new Date().toLocaleDateString('es-MX', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </Text>
-          </View>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {profile?.name?.charAt(0)?.toUpperCase() || 'U'}
-            </Text>
-          </View>
-        </View>
-
-        {/* AI Coach Card */}
-        <Pressable style={styles.coachCard}>
-          <View style={styles.coachGradient}>
-            <View style={styles.coachContent}>
-              <View style={styles.coachIconContainer}>
-                <Ionicons name="sparkles" size={24} color={COLORS.primary} />
-              </View>
-              <View style={styles.coachTextContainer}>
-                <Text style={styles.coachTitle}>Asistente SimpleLife AI</Text>
-                <Text style={styles.coachSubtitle}>
-                  Pregúntame lo que quieras
-                </Text>
-              </View>
-            </View>
-            <View style={styles.coachButton}>
-              <Text style={styles.coachButtonText}>Preguntar</Text>
-              <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
-            </View>
-          </View>
+      {/* Header */}
+      <View style={styles.header}>
+        <Pressable style={styles.menuButton}>
+          <Ionicons name="menu" size={24} color="#3D2B1F" />
         </Pressable>
+        <Text style={styles.headerTitle}>Lifestyle</Text>
+        <Pressable style={styles.bellButton}>
+          <Ionicons name="notifications-outline" size={22} color="#3D2B1F" />
+        </Pressable>
+      </View>
 
-        {/* Stats Row */}
-        <View style={styles.statsRow}>
-          <View style={[styles.statCard, { backgroundColor: COLORS.primarySurface }]}>
-            <View style={[styles.statIcon, { backgroundColor: COLORS.primary }]}>
-              <Ionicons name="time-outline" size={18} color="#FFFFFF" />
-            </View>
-            <Text style={[styles.statNumber, { color: COLORS.primary }]}>
-              {pendingTasks.length}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+        {/* Calendar Section */}
+        <View style={styles.sectionLabel}>
+          <Text style={styles.sectionLabelText}>PLANEACIÓN</Text>
+        </View>
+        <Text style={styles.sectionTitle}>Calendario</Text>
+
+        <View style={styles.calendarCard}>
+          {/* Month Header */}
+          <View style={styles.monthHeader}>
+            <Text style={styles.monthTitle}>
+              {MONTHS[month]} {year}
             </Text>
-            <Text style={styles.statLabel}>Pendientes</Text>
+            <View style={styles.monthArrows}>
+              <Pressable style={styles.arrowButton}>
+                <Ionicons name="chevron-back" size={18} color="#C56A49" />
+              </Pressable>
+              <Pressable style={styles.arrowButton}>
+                <Ionicons name="chevron-forward" size={18} color="#C56A49" />
+              </Pressable>
+            </View>
           </View>
-          <View style={[styles.statCard, { backgroundColor: COLORS.tertiarySurface }]}>
-            <View style={[styles.statIcon, { backgroundColor: COLORS.tertiary }]}>
-              <Ionicons name="sunny-outline" size={18} color="#FFFFFF" />
-            </View>
-            <Text style={[styles.statNumber, { color: COLORS.tertiary }]}>
-              {todayTasks.length}
-            </Text>
-            <Text style={styles.statLabel}>Hoy</Text>
+
+          {/* Weekday Headers */}
+          <View style={styles.weekdays}>
+            {DAYS.map((d) => (
+              <Text key={d} style={styles.weekday}>{d}</Text>
+            ))}
           </View>
-          <View style={[styles.statCard, { backgroundColor: COLORS.secondarySurface }]}>
-            <View style={[styles.statIcon, { backgroundColor: COLORS.secondary }]}>
-              <Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" />
-            </View>
-            <Text style={[styles.statNumber, { color: COLORS.secondary }]}>
-              {completionRate}%
-            </Text>
-            <Text style={styles.statLabel}>Completado</Text>
+
+          {/* Calendar Grid */}
+          <View style={styles.grid}>
+            {days.map((d, i) => (
+              <View key={i} style={styles.dayCell}>
+                {d ? (
+                  <Pressable
+                    style={[
+                      styles.dayButton,
+                      d === todayNum && styles.dayButtonActive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.dayText,
+                        d === todayNum && styles.dayTextActive,
+                      ]}
+                    >
+                      {d}
+                    </Text>
+                    {hasEvent(d) && <View style={styles.dayDot} />}
+                  </Pressable>
+                ) : (
+                  <View style={styles.dayEmpty} />
+                )}
+              </View>
+            ))}
           </View>
         </View>
 
-        {/* Today's Tasks */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Tareas de Hoy</Text>
-          <Pressable>
-            <Text style={styles.sectionLink}>Ver todas</Text>
-          </Pressable>
+        {/* Events Section */}
+        <View style={styles.eventsHeader}>
+          <Text style={styles.eventsSectionTitle}>Eventos de hoy</Text>
+          <Text style={styles.eventsCount}>{dayEvents.length} actividades</Text>
         </View>
 
-        {todayTasks.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Ionicons name="checkmark-done-circle-outline" size={48} color={COLORS.textTertiary} />
-            <Text style={styles.emptyTitle}>¡Todo listo!</Text>
-            <Text style={styles.emptyText}>No hay tareas pendientes para hoy</Text>
+        {dayEvents.length === 0 ? (
+          <View style={styles.emptyEvents}>
+            <Ionicons name="calendar-outline" size={32} color="#CCC" />
+            <Text style={styles.emptyText}>No hay eventos hoy</Text>
           </View>
         ) : (
-          todayTasks.slice(0, 3).map((task) => (
-            <View key={task.id} style={styles.taskCard}>
-              <View style={styles.taskCheckbox}>
-                <Ionicons
-                  name="ellipse-outline"
-                  size={22}
-                  color={COLORS.primary}
-                />
-              </View>
-              <View style={styles.taskContent}>
-                <Text style={styles.taskTitle}>{task.title}</Text>
-                {task.description ? (
-                  <Text style={styles.taskDescription} numberOfLines={1}>
-                    {task.description}
-                  </Text>
-                ) : null}
-              </View>
+          dayEvents.map((event) => (
+            <View key={event.id} style={styles.eventCard}>
               <View
                 style={[
-                  styles.priorityBadge,
-                  {
-                    backgroundColor:
-                      task.priority === 'high'
-                        ? COLORS.primarySurface
-                        : task.priority === 'medium'
-                        ? COLORS.tertiarySurface
-                        : COLORS.secondarySurface,
-                  },
+                  styles.eventBorder,
+                  { backgroundColor: EVENT_COLORS[event.category || 'General'] || '#C56A49' },
                 ]}
-              >
-                <Text
-                  style={[
-                    styles.priorityText,
-                    {
-                      color:
-                        task.priority === 'high'
-                          ? COLORS.primary
-                          : task.priority === 'medium'
-                          ? COLORS.tertiary
-                          : COLORS.secondary,
-                    },
-                  ]}
-                >
-                  {task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Media' : 'Baja'}
+              />
+              <View style={styles.eventContent}>
+                <Text style={styles.eventCategory}>
+                  {(event.category || 'General').toUpperCase()}
                 </Text>
+                <Text style={styles.eventTitle}>{event.title}</Text>
+                {event.start_time && (
+                  <Text style={styles.eventTime}>
+                    {event.start_time}
+                    {event.end_time ? ` - ${event.end_time}` : ''}
+                  </Text>
+                )}
               </View>
             </View>
           ))
         )}
 
-        <View style={{ height: 120 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -179,194 +152,200 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scroll: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
+    backgroundColor: '#F5F0EB',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   },
-  greeting: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    letterSpacing: -0.5,
-  },
-  date: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginTop: 4,
-    textTransform: 'capitalize',
-    fontWeight: '500',
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: COLORS.primary,
+  menuButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: {
-    fontSize: 20,
+  headerTitle: {
+    fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#3D2B1F',
   },
-  coachCard: {
-    marginBottom: 20,
-    borderRadius: 20,
-    overflow: 'hidden',
-    ...SHADOWS.medium,
+  bellButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  coachGradient: {
-    backgroundColor: COLORS.surface,
-    padding: 20,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.divider,
+  scroll: {
+    paddingHorizontal: 20,
   },
-  coachContent: {
+  sectionLabel: {
+    marginBottom: 4,
+  },
+  sectionLabelText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#AA9A8A',
+    letterSpacing: 1.5,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#3D2B1F',
+    marginBottom: 16,
+  },
+  calendarCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  monthHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
   },
-  coachIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: COLORS.primarySurface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  coachTextContainer: {
-    flex: 1,
-  },
-  coachTitle: {
+  monthTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
+    fontWeight: '700',
+    color: '#3D2B1F',
   },
-  coachSubtitle: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  coachButton: {
+  monthArrows: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.primary,
-    borderRadius: 12,
-    paddingVertical: 12,
     gap: 8,
   },
-  coachButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 24,
-  },
-  statCard: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderRadius: 16,
-    gap: 8,
-  },
-  statIcon: {
+  arrowButton: {
     width: 32,
     height: 32,
+    borderRadius: 8,
+    backgroundColor: '#F9F6F2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  weekdays: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  weekday: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#AA9A8A',
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  dayCell: {
+    width: '14.28%',
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayEmpty: {
+    width: 36,
+    height: 36,
+  },
+  dayButton: {
+    width: 36,
+    height: 36,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  statNumber: {
-    fontSize: 22,
-    fontWeight: '700',
+  dayButtonActive: {
+    backgroundColor: '#C56A49',
   },
-  statLabel: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
+  dayText: {
+    fontSize: 14,
+    color: '#3D2B1F',
     fontWeight: '500',
   },
-  sectionHeader: {
+  dayTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  dayDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#C56A49',
+    marginTop: 1,
+  },
+  eventsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
-  sectionTitle: {
+  eventsSectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
+    fontWeight: '700',
+    color: '#3D2B1F',
   },
-  sectionLink: {
+  eventsCount: {
     fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.primary,
+    color: '#AA9A8A',
+    fontWeight: '500',
   },
-  emptyCard: {
-    backgroundColor: COLORS.surface,
+  emptyEvents: {
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 32,
     alignItems: 'center',
     gap: 8,
-    borderWidth: 1,
-    borderColor: COLORS.divider,
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
   },
   emptyText: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
+    fontSize: 14,
+    color: '#AA9A8A',
   },
-  taskCard: {
+  eventCard: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
     marginBottom: 10,
-    borderWidth: 1,
-    borderColor: COLORS.divider,
-    ...SHADOWS.small,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
-  taskCheckbox: {
-    marginRight: 12,
+  eventBorder: {
+    width: 4,
   },
-  taskContent: {
+  eventContent: {
     flex: 1,
+    padding: 14,
   },
-  taskTitle: {
+  eventCategory: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#AA9A8A',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  eventTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.textPrimary,
+    color: '#3D2B1F',
+    marginBottom: 4,
   },
-  taskDescription: {
+  eventTime: {
     fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  priorityBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  priorityText: {
-    fontSize: 11,
-    fontWeight: '600',
+    color: '#8A7A6A',
   },
 });

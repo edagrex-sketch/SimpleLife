@@ -10,21 +10,20 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import ExpenseCard from '../components/ExpenseCard';
-import { COLORS, SHADOWS, EXPENSE_CATEGORIES } from '../utils/colors';
+import { COLORS, EXPENSE_CATEGORIES } from '../utils/colors';
 import { useExpenses } from '../context/ExpensesContext';
 import { today, formatAmount } from '../utils/helpers';
 
-const CATEGORY_ICONS: Record<string, string> = {
-  Comida: 'restaurant-outline',
-  Transporte: 'car-outline',
-  Casa: 'home-outline',
-  Salud: 'medical-outline',
-  Entretenimiento: 'game-controller-outline',
-  Educación: 'school-outline',
-  Ropa: 'shirt-outline',
-  Otros: 'ellipsis-horizontal-outline',
+const CATEGORY_BADGES: Record<string, { label: string; color: string; bg: string }> = {
+  Alimentos: { label: 'ALIMENTOS', color: '#C56A49', bg: '#FDEEE8' },
+  Transporte: { label: 'TRANSPORTE', color: '#91AC9F', bg: '#EEF4F0' },
+  Entretenimiento: { label: 'ENTRETENIMIENTO', color: '#DFAD6D', bg: '#FDF5E6' },
+  Suscripciones: { label: 'SUSCRIPCIONES', color: '#8A7A6A', bg: '#F5F0EB' },
+  Salud: { label: 'SALUD', color: '#74A0B8', bg: '#E8F2F8' },
+  Otros: { label: 'OTROS', color: '#AA9A8A', bg: '#F5F0EB' },
 };
+
+const FILTERS = ['Todos', 'Alimentos', 'Transporte'];
 
 export default function ExpensesScreen() {
   const { expenses, addExpense, deleteExpense } = useExpenses();
@@ -33,15 +32,14 @@ export default function ExpensesScreen() {
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('Otros');
   const [date, setDate] = useState(today());
+  const [activeFilter, setActiveFilter] = useState('Todos');
 
   const total = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const thisMonth = expenses.filter((e) => {
-    if (!e.date) return false;
-    const d = new Date(e.date);
-    const now = new Date();
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  });
-  const monthTotal = thisMonth.reduce((sum, e) => sum + e.amount, 0);
+
+  const filteredExpenses =
+    activeFilter === 'Todos'
+      ? expenses
+      : expenses.filter((e) => e.category === activeFilter);
 
   const handleAdd = async () => {
     if (!title.trim() || !amount) return;
@@ -58,71 +56,129 @@ export default function ExpensesScreen() {
     setShowModal(false);
   };
 
+  const formatExpenseDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('es-MX', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Gastos</Text>
-          <Text style={styles.subtitle}>{expenses.length} registros</Text>
+          <Text style={styles.headerAppName}>VidaSimple</Text>
         </View>
+        <Pressable style={styles.bellButton}>
+          <Ionicons name="notifications-outline" size={22} color="#3D2B1F" />
+        </Pressable>
       </View>
 
-      {/* Summary Card */}
-      <View style={styles.summaryCard}>
-        <View style={styles.summaryRow}>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Total</Text>
-            <Text style={styles.summaryAmount}>{formatAmount(total)}</Text>
+      <Text style={styles.title}>Gastos</Text>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+        {/* Budget Card */}
+        <View style={styles.budgetCard}>
+          <View style={styles.budgetHeader}>
+            <Text style={styles.budgetLabel}>Gasto Total Mensual</Text>
+            <View style={styles.budgetBadge}>
+              <Text style={styles.budgetBadgeText}>Limite 2026</Text>
+            </View>
           </View>
-          <View style={styles.summaryDivider} />
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryLabel}>Este mes</Text>
-            <Text style={[styles.summaryAmount, { color: COLORS.tertiary }]}>
-              {formatAmount(monthTotal)}
+          <Text style={styles.budgetAmount}>{formatAmount(total)}</Text>
+
+          <View style={styles.budgetBarContainer}>
+            <View style={styles.budgetBarBg}>
+              <View
+                style={[
+                  styles.budgetBarFill,
+                  { width: `${Math.min((total / 5000) * 100, 100)}%` },
+                ]}
+              />
+            </View>
+            <Text style={styles.budgetPercent}>
+              {Math.round((total / 5000) * 100)}% utilizado
+            </Text>
+          </View>
+
+          <View style={styles.budgetDetails}>
+            <Text style={styles.budgetDetail}>
+              Presupuesto: <Text style={styles.budgetDetailBold}>$5,000.00</Text>
+            </Text>
+            <Text style={styles.budgetDetail}>
+              Quedan <Text style={[styles.budgetDetailBold, { color: '#91AC9F' }]}>
+                {formatAmount(Math.max(5000 - total, 0))}
+              </Text> este mes
             </Text>
           </View>
         </View>
-        <View style={styles.summaryProgress}>
-          <View style={styles.progressBar}>
-            <View
-              style={[
-                styles.progressFill,
-                {
-                  width: `${Math.min((monthTotal / (total || 1)) * 100, 100)}%`,
-                },
-              ]}
-            />
-          </View>
-        </View>
-      </View>
 
-      {/* Expenses List */}
-      <ScrollView
-        style={styles.list}
-        showsVerticalScrollIndicator={false}
-      >
-        {expenses.length === 0 ? (
+        {/* Filters */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filtersRow}
+          contentContainerStyle={styles.filtersContent}
+        >
+          {FILTERS.map((f) => (
+            <Pressable
+              key={f}
+              style={[styles.filterChip, activeFilter === f && styles.filterChipActive]}
+              onPress={() => setActiveFilter(f)}
+            >
+              <Text
+                style={[styles.filterText, activeFilter === f && styles.filterTextActive]}
+              >
+                {f}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+
+        {/* Transactions */}
+        <Text style={styles.sectionTitle}>RECIENTE</Text>
+
+        {filteredExpenses.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Ionicons
-              name="wallet-outline"
-              size={48}
-              color={COLORS.textTertiary}
-            />
-            <Text style={styles.emptyTitle}>Sin gastos</Text>
-            <Text style={styles.emptyText}>Registra tu primer gasto</Text>
+            <Ionicons name="wallet-outline" size={40} color="#CCC" />
+            <Text style={styles.emptyText}>Sin gastos registrados</Text>
           </View>
         ) : (
-          expenses.map((expense) => (
-            <ExpenseCard
-              key={expense.id}
-              expense={expense}
-              onDelete={() => deleteExpense(expense.id)}
-            />
-          ))
+          filteredExpenses.map((expense) => {
+            const badge = CATEGORY_BADGES[expense.category || 'Otros'] || CATEGORY_BADGES.Otros;
+            return (
+              <View key={expense.id} style={styles.transactionCard}>
+                <View style={styles.transactionLeft}>
+                  <View style={[styles.transactionIcon, { backgroundColor: badge.bg }]}>
+                    <Ionicons name="receipt-outline" size={18} color={badge.color} />
+                  </View>
+                  <View>
+                    <Text style={styles.transactionTitle}>{expense.title}</Text>
+                    <Text style={styles.transactionDate}>
+                      {expense.date ? formatExpenseDate(expense.date) : ''}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.transactionAmount}>
+                  -${expense.amount.toFixed(2)}
+                </Text>
+              </View>
+            );
+          })
         )}
-        <View style={{ height: 120 }} />
+
+        <View style={{ height: 100 }} />
       </ScrollView>
+
+      {/* FAB */}
+      <Pressable style={styles.fab} onPress={() => setShowModal(true)}>
+        <Ionicons name="add" size={28} color="#FFFFFF" />
+      </Pressable>
 
       {/* Add Modal */}
       <Modal visible={showModal} animationType="slide" transparent>
@@ -131,40 +187,30 @@ export default function ExpensesScreen() {
             <View style={styles.modalHandle} />
             <Text style={styles.modalTitle}>Nuevo Gasto</Text>
 
+            <Text style={styles.inputLabel}>Descripción</Text>
             <View style={styles.inputContainer}>
-              <Ionicons
-                name="document-text-outline"
-                size={20}
-                color={COLORS.textSecondary}
-                style={styles.inputIcon}
-              />
               <TextInput
                 style={styles.input}
-                placeholder="Descripción"
-                placeholderTextColor={COLORS.textTertiary}
+                placeholder="Nombre del gasto"
+                placeholderTextColor="#BBBBBB"
                 value={title}
                 onChangeText={setTitle}
               />
             </View>
 
+            <Text style={styles.inputLabel}>Monto</Text>
             <View style={styles.inputContainer}>
-              <Ionicons
-                name="cash-outline"
-                size={20}
-                color={COLORS.textSecondary}
-                style={styles.inputIcon}
-              />
               <TextInput
                 style={styles.input}
-                placeholder="Monto"
-                placeholderTextColor={COLORS.textTertiary}
+                placeholder="$0.00"
+                placeholderTextColor="#BBBBBB"
                 value={amount}
                 onChangeText={setAmount}
                 keyboardType="decimal-pad"
               />
             </View>
 
-            <Text style={styles.label}>Categoría</Text>
+            <Text style={styles.inputLabel}>Categoría</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -173,47 +219,17 @@ export default function ExpensesScreen() {
               {EXPENSE_CATEGORIES.map((c) => (
                 <Pressable
                   key={c}
-                  style={[
-                    styles.categoryChip,
-                    category === c && styles.categoryChipActive,
-                  ]}
+                  style={[styles.categoryChip, category === c && styles.categoryChipActive]}
                   onPress={() => setCategory(c)}
                 >
-                  <Ionicons
-                    name={
-                      (CATEGORY_ICONS[c] as any) ||
-                      'ellipsis-horizontal-outline'
-                    }
-                    size={16}
-                    color={category === c ? '#FFFFFF' : COLORS.textSecondary}
-                  />
                   <Text
-                    style={[
-                      styles.categoryText,
-                      category === c && styles.categoryTextActive,
-                    ]}
+                    style={[styles.categoryText, category === c && styles.categoryTextActive]}
                   >
                     {c}
                   </Text>
                 </Pressable>
               ))}
             </ScrollView>
-
-            <View style={styles.inputContainer}>
-              <Ionicons
-                name="calendar-outline"
-                size={20}
-                color={COLORS.textSecondary}
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                value={date}
-                onChangeText={setDate}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor={COLORS.textTertiary}
-              />
-            </View>
 
             <View style={styles.modalButtons}>
               <Pressable
@@ -223,7 +239,7 @@ export default function ExpensesScreen() {
                 <Text style={styles.cancelText}>Cancelar</Text>
               </Pressable>
               <Pressable style={styles.saveButton} onPress={handleAdd}>
-                <Text style={styles.saveText}>Guardar Gasto</Text>
+                <Text style={styles.saveText}>Guardar</Text>
               </Pressable>
             </View>
           </View>
@@ -236,97 +252,210 @@ export default function ExpensesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#F5F0EB',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingVertical: 12,
+  },
+  headerAppName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#C56A49',
+  },
+  bellButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-    fontWeight: '500',
-  },
-  summaryCard: {
-    marginHorizontal: 20,
-    marginTop: 16,
-    marginBottom: 12,
-    padding: 20,
-    backgroundColor: COLORS.surface,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.divider,
-    ...SHADOWS.medium,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  summaryItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  summaryLabel: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  summaryAmount: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.primary,
+    color: '#3D2B1F',
+    paddingHorizontal: 20,
+    marginBottom: 16,
   },
-  summaryDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: COLORS.divider,
-  },
-  summaryProgress: {
-    marginTop: 16,
-  },
-  progressBar: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: COLORS.surfaceSecondary,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 3,
-    backgroundColor: COLORS.primary,
-  },
-  list: {
-    flex: 1,
+  scroll: {
     paddingHorizontal: 20,
   },
+  budgetCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  budgetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  budgetLabel: {
+    fontSize: 13,
+    color: '#AA9A8A',
+    fontWeight: '500',
+  },
+  budgetBadge: {
+    backgroundColor: '#91AC9F20',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  budgetBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#91AC9F',
+  },
+  budgetAmount: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#3D2B1F',
+    marginBottom: 16,
+  },
+  budgetBarContainer: {
+    marginBottom: 12,
+  },
+  budgetBarBg: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#F0EBE5',
+    overflow: 'hidden',
+    marginBottom: 6,
+  },
+  budgetBarFill: {
+    height: '100%',
+    borderRadius: 3,
+    backgroundColor: '#C56A49',
+  },
+  budgetPercent: {
+    fontSize: 12,
+    color: '#AA9A8A',
+    textAlign: 'right',
+  },
+  budgetDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  budgetDetail: {
+    fontSize: 12,
+    color: '#AA9A8A',
+  },
+  budgetDetailBold: {
+    fontWeight: '700',
+    color: '#3D2B1F',
+  },
+  filtersRow: {
+    marginBottom: 20,
+  },
+  filtersContent: {
+    gap: 8,
+  },
+  filterChip: {
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#EDE8E3',
+  },
+  filterChipActive: {
+    backgroundColor: '#C56A49',
+    borderColor: '#C56A49',
+  },
+  filterText: {
+    fontSize: 13,
+    color: '#8A7A6A',
+    fontWeight: '600',
+  },
+  filterTextActive: {
+    color: '#FFFFFF',
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#AA9A8A',
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
   emptyCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 32,
     alignItems: 'center',
     gap: 8,
-    borderWidth: 1,
-    borderColor: COLORS.divider,
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
   },
   emptyText: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
+    fontSize: 14,
+    color: '#AA9A8A',
+  },
+  transactionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  transactionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  transactionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  transactionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#3D2B1F',
+  },
+  transactionDate: {
+    fontSize: 11,
+    color: '#AA9A8A',
+    marginTop: 2,
+  },
+  transactionAmount: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#C56A49',
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 90,
+    alignSelf: 'center',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#3D2B1F',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#3D2B1F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
   modalOverlay: {
     flex: 1,
@@ -334,72 +463,63 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modal: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
-    gap: 12,
   },
   modalHandle: {
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: COLORS.divider,
+    backgroundColor: '#EDE8E3',
     alignSelf: 'center',
-    marginBottom: 8,
+    marginBottom: 16,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.textPrimary,
+    color: '#3D2B1F',
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#5A4A3A',
     marginBottom: 8,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: '#F9F6F2',
     borderRadius: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: COLORS.divider,
-  },
-  inputIcon: {
-    marginRight: 10,
+    borderColor: '#EDE8E3',
+    marginBottom: 16,
   },
   input: {
-    flex: 1,
-    paddingVertical: 12,
-    fontSize: 14,
-    color: COLORS.textPrimary,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-    marginTop: 4,
+    paddingVertical: 14,
+    fontSize: 15,
+    color: '#3D2B1F',
   },
   categoryScroll: {
-    marginBottom: 4,
+    marginBottom: 20,
   },
   categoryChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: COLORS.surfaceSecondary,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: '#F9F6F2',
     marginRight: 8,
     borderWidth: 1,
-    borderColor: COLORS.divider,
-    gap: 6,
+    borderColor: '#EDE8E3',
   },
   categoryChipActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: '#C56A49',
+    borderColor: '#C56A49',
   },
   categoryText: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: '#8A7A6A',
     fontWeight: '600',
   },
   categoryTextActive: {
@@ -408,28 +528,27 @@ const styles = StyleSheet.create({
   modalButtons: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 16,
   },
   cancelButton: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: '#F9F6F2',
     borderWidth: 1,
-    borderColor: COLORS.divider,
+    borderColor: '#EDE8E3',
   },
   cancelText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.textSecondary,
+    color: '#8A7A6A',
   },
   saveButton: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#C56A49',
   },
   saveText: {
     fontSize: 14,

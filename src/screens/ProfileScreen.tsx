@@ -1,15 +1,8 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  Alert,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, ScrollView, Pressable, Alert, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { COLORS, SHADOWS } from '../utils/colors';
+import { COLORS } from '../utils/colors';
 import { useAuth } from '../context/AuthContext';
 import { useTasks } from '../context/TaskContext';
 import { useExpenses } from '../context/ExpensesContext';
@@ -19,156 +12,99 @@ export default function ProfileScreen() {
   const { tasks } = useTasks();
   const { expenses } = useExpenses();
 
-  const totalTasks = tasks.length;
   const completedTasks = tasks.filter((t) => t.is_done).length;
-  const completionRate =
-    totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-  const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
 
   const handleSignOut = () => {
-    Alert.alert('Cerrar Sesión', '¿Estás seguro que deseas cerrar sesión?', [
+    Alert.alert('Cerrar Sesión', '¿Estás seguro?', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Salir', style: 'destructive', onPress: signOut },
     ]);
   };
 
   const menuItems = [
-    {
-      icon: 'notifications-outline',
-      title: 'Notificaciones',
-      subtitle: 'Próximamente',
-      color: COLORS.primary,
-    },
-    {
-      icon: 'moon-outline',
-      title: 'Modo oscuro',
-      subtitle: 'Próximamente',
-      color: COLORS.secondary,
-    },
-    {
-      icon: 'sparkles',
-      title: 'Asistente IA',
-      subtitle: 'Próximamente',
-      color: COLORS.tertiary,
-    },
-    {
-      icon: 'shield-checkmark-outline',
-      title: 'Privacidad',
-      subtitle: 'Próximamente',
-      color: COLORS.primary,
-    },
+    { icon: 'person-outline', label: 'Cuenta' },
+    { icon: 'notifications-outline', label: 'Notificaciones' },
+    { icon: 'lock-closed-outline', label: 'Privacidad' },
+    { icon: 'help-circle-outline', label: 'Ayuda' },
   ];
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Perfil</Text>
-        </View>
+      {/* Header */}
+      <View style={styles.header}>
+        <Pressable style={styles.menuButton}>
+          <Ionicons name="menu" size={24} color="#3D2B1F" />
+        </Pressable>
+        <Text style={styles.headerTitle}>Lifestyle</Text>
+        <Pressable style={styles.bellButton}>
+          <Ionicons name="notifications-outline" size={22} color="#3D2B1F" />
+        </Pressable>
+      </View>
 
-        {/* Profile Card */}
-        <View style={styles.profileCard}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+        {/* Avatar */}
+        <View style={styles.avatarSection}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
               {profile?.name?.charAt(0)?.toUpperCase() || 'U'}
+              {profile?.name?.split(' ')[1]?.charAt(0)?.toUpperCase() || ''}
             </Text>
           </View>
           <Text style={styles.name}>{profile?.name || 'Usuario'}</Text>
           <Text style={styles.email}>{profile?.email || ''}</Text>
-
-          {/* Stats Row */}
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{totalTasks}</Text>
-              <Text style={styles.statLabel}>Tareas</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{completionRate}%</Text>
-              <Text style={styles.statLabel}>Completado</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{expenses.length}</Text>
-              <Text style={styles.statLabel}>Gastos</Text>
-            </View>
-          </View>
         </View>
 
-        {/* Quick Stats */}
-        <View style={styles.quickStats}>
-          <View
-            style={[
-              styles.quickStatCard,
-              { backgroundColor: COLORS.primarySurface },
-            ]}
-          >
-            <Ionicons name="wallet-outline" size={22} color={COLORS.primary} />
-            <Text style={[styles.quickStatNumber, { color: COLORS.primary }]}>
-              ${totalExpenses.toFixed(0)}
-            </Text>
-            <Text style={styles.quickStatLabel}>Total gastado</Text>
+        {/* Stats Grid */}
+        <View style={styles.statsGrid}>
+          <View style={styles.statCard}>
+            <View style={styles.statIconContainer}>
+              <Ionicons name="flame-outline" size={20} color="#C56A49" />
+            </View>
+            <Text style={styles.statNumber}>14</Text>
+            <Text style={styles.statLabel}>Días siguientes</Text>
           </View>
-          <View
-            style={[
-              styles.quickStatCard,
-              { backgroundColor: COLORS.secondarySurface },
-            ]}
-          >
-            <Ionicons
-              name="checkmark-done-outline"
-              size={22}
-              color={COLORS.secondary}
-            />
-            <Text style={[styles.quickStatNumber, { color: COLORS.secondary }]}>
-              {completedTasks}
-            </Text>
-            <Text style={styles.quickStatLabel}>Completadas</Text>
+          <View style={styles.statCard}>
+            <View style={styles.statIconContainer}>
+              <Ionicons name="checkmark-circle-outline" size={20} color="#C56A49" />
+            </View>
+            <Text style={styles.statNumber}>{completedTasks}</Text>
+            <Text style={styles.statLabel}>Tareas completadas</Text>
+          </View>
+          <View style={styles.statCard}>
+            <View style={styles.statIconContainer}>
+              <Ionicons name="people-outline" size={20} color="#C56A49" />
+            </View>
+            <Text style={styles.statNumber}>6</Text>
+            <Text style={styles.statLabel}>Espacios</Text>
+          </View>
+          <View style={styles.statCard}>
+            <View style={styles.statIconContainer}>
+              <Ionicons name="trophy-outline" size={20} color="#C56A49" />
+            </View>
+            <Text style={styles.statNumber}>12</Text>
+            <Text style={styles.statLabel}>Logros</Text>
           </View>
         </View>
 
         {/* Menu Items */}
         <View style={styles.menuCard}>
           {menuItems.map((item, index) => (
-            <React.Fragment key={item.title}>
+            <React.Fragment key={item.label}>
               <Pressable style={styles.menuItem}>
-                <View
-                  style={[
-                    styles.menuIcon,
-                    { backgroundColor: item.color + '15' },
-                  ]}
-                >
-                  <Ionicons name={item.icon as any} size={20} color={item.color} />
-                </View>
-                <View style={styles.menuContent}>
-                  <Text style={styles.menuTitle}>{item.title}</Text>
-                  <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={18}
-                  color={COLORS.textTertiary}
-                />
+                <Ionicons name={item.icon as any} size={20} color="#5A4A3A" />
+                <Text style={styles.menuLabel}>{item.label}</Text>
+                <Ionicons name="chevron-forward" size={18} color="#CCBBAA" />
               </Pressable>
-              {index < menuItems.length - 1 && (
-                <View style={styles.menuDivider} />
-              )}
+              {index < menuItems.length - 1 && <View style={styles.menuDivider} />}
             </React.Fragment>
           ))}
         </View>
 
-        {/* Logout Button */}
+        {/* Logout */}
         <Pressable style={styles.logoutButton} onPress={handleSignOut}>
-          <Ionicons name="log-out-outline" size={20} color={COLORS.error} />
-          <Text style={styles.logoutText}>Cerrar Sesión</Text>
+          <Ionicons name="log-out-outline" size={18} color="#AA9A8A" />
+          <Text style={styles.logoutText}>Cerrar sesión</Text>
         </Pressable>
-
-        {/* Version */}
-        <Text style={styles.version}>VidaSimple v1.0.0</Text>
 
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -179,162 +115,142 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#F5F0EB',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  menuButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#3D2B1F',
+  },
+  bellButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scroll: {
     paddingHorizontal: 20,
-    paddingTop: 16,
   },
-  header: {
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    letterSpacing: -0.5,
-  },
-  profileCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 20,
-    padding: 24,
+  avatarSection: {
     alignItems: 'center',
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: COLORS.divider,
-    ...SHADOWS.medium,
+    marginBottom: 28,
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: COLORS.primary,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: '#C56A49',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   avatarText: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: '700',
     color: '#FFFFFF',
   },
   name: {
     fontSize: 22,
     fontWeight: '700',
-    color: COLORS.textPrimary,
+    color: '#3D2B1F',
   },
   email: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: '#AA9A8A',
     marginTop: 4,
   },
-  statsRow: {
+  statsGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 20,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.divider,
-    width: '100%',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 24,
   },
-  statItem: {
-    flex: 1,
+  statCard: {
+    width: '47%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  statIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FDEEE8',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
   },
   statNumber: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '700',
-    color: COLORS.textPrimary,
+    color: '#3D2B1F',
   },
   statLabel: {
     fontSize: 11,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-    fontWeight: '500',
-  },
-  statDivider: {
-    width: 1,
-    height: 30,
-    backgroundColor: COLORS.divider,
-  },
-  quickStats: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 16,
-  },
-  quickStatCard: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-    gap: 4,
-  },
-  quickStatNumber: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  quickStatLabel: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
+    color: '#AA9A8A',
+    marginTop: 4,
     fontWeight: '500',
   },
   menuCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 4,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: COLORS.divider,
+    paddingHorizontal: 16,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
+    paddingVertical: 16,
+    gap: 12,
   },
-  menuIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  menuContent: {
+  menuLabel: {
     flex: 1,
-  },
-  menuTitle: {
     fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  menuSubtitle: {
-    fontSize: 11,
-    color: COLORS.textTertiary,
-    marginTop: 1,
+    fontWeight: '500',
+    color: '#3D2B1F',
   },
   menuDivider: {
     height: 1,
-    backgroundColor: COLORS.divider,
-    marginLeft: 62,
+    backgroundColor: '#F0EBE5',
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.errorSurface,
-    borderRadius: 14,
     paddingVertical: 14,
     gap: 8,
-    marginBottom: 16,
   },
   logoutText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
-    color: COLORS.error,
-  },
-  version: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: COLORS.textTertiary,
+    color: '#AA9A8A',
   },
 });

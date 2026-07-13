@@ -10,18 +10,17 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import TaskCard from '../components/TaskCard';
 import { COLORS } from '../utils/colors';
 import { useTasks } from '../context/TaskContext';
 import { TaskPriority } from '../types';
 import { today } from '../utils/helpers';
 
 const FILTERS = ['Todas', 'Hoy', 'Pendientes', 'Completadas'];
-const PRIORITIES: TaskPriority[] = ['low', 'medium', 'high'];
-const PRIORITY_COLORS: Record<TaskPriority, string> = {
-  low: COLORS.secondary,
-  medium: COLORS.tertiary,
-  high: COLORS.primary,
+
+const PRIORITY_CONFIG: Record<TaskPriority, { label: string; color: string; bg: string }> = {
+  high: { label: 'ALTA', color: '#C56A49', bg: '#FDEEE8' },
+  medium: { label: 'MEDIA', color: '#DFAD6D', bg: '#FDF5E6' },
+  low: { label: 'BAJA', color: '#91AC9F', bg: '#EEF4F0' },
 };
 
 export default function TasksScreen() {
@@ -67,15 +66,23 @@ export default function TasksScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
+        <Pressable style={styles.menuButton}>
+          <Ionicons name="menu" size={24} color="#3D2B1F" />
+        </Pressable>
+        <Text style={styles.headerTitle}>Lifestyle</Text>
+        <Pressable style={styles.bellButton}>
+          <Ionicons name="notifications-outline" size={22} color="#3D2B1F" />
+        </Pressable>
+      </View>
+
+      <View style={styles.titleRow}>
         <View>
           <Text style={styles.title}>Tareas</Text>
-          <Text style={styles.subtitle}>{tasks.length} tareas en total</Text>
+          <Text style={styles.subtitle}>Organiza tu día con intención</Text>
         </View>
-        <View style={styles.headerBadge}>
-          <Text style={styles.headerBadgeText}>
-            {tasks.filter((t) => !t.is_done).length}
-          </Text>
-        </View>
+        <Pressable style={styles.sortButton}>
+          <Ionicons name="swap-vertical" size={18} color="#C56A49" />
+        </Pressable>
       </View>
 
       {/* Filters */}
@@ -92,10 +99,7 @@ export default function TasksScreen() {
             onPress={() => setFilter(f)}
           >
             <Text
-              style={[
-                styles.filterText,
-                filter === f && styles.filterTextActive,
-              ]}
+              style={[styles.filterText, filter === f && styles.filterTextActive]}
             >
               {f}
             </Text>
@@ -104,34 +108,53 @@ export default function TasksScreen() {
       </ScrollView>
 
       {/* Tasks List */}
-      <ScrollView
-        style={styles.list}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
         {filteredTasks.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Ionicons
-              name="checkmark-done-circle-outline"
-              size={48}
-              color={COLORS.textTertiary}
-            />
+            <Ionicons name="checkmark-done-circle-outline" size={48} color="#CCC" />
             <Text style={styles.emptyTitle}>No hay tareas</Text>
-            <Text style={styles.emptyText}>
-              Crea tu primera tarea para comenzar
-            </Text>
+            <Text style={styles.emptyText}>Crea tu primera tarea</Text>
           </View>
         ) : (
-          filteredTasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              onToggle={() => toggleTask(task.id)}
-              onPress={() => {}}
-            />
-          ))
+          filteredTasks.map((task) => {
+            const pConfig = PRIORITY_CONFIG[task.priority || 'medium'];
+            return (
+              <Pressable
+                key={task.id}
+                style={styles.taskCard}
+                onPress={() => toggleTask(task.id)}
+              >
+                <View style={[styles.checkbox, task.is_done && styles.checkboxDone]}>
+                  {task.is_done && (
+                    <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                  )}
+                </View>
+                <View style={styles.taskContent}>
+                  <Text style={[styles.taskTitle, task.is_done && styles.taskDone]}>
+                    {task.title}
+                  </Text>
+                  {task.description ? (
+                    <Text style={styles.taskDescription} numberOfLines={1}>
+                      {task.description}
+                    </Text>
+                  ) : null}
+                </View>
+                <View style={[styles.priorityBadge, { backgroundColor: pConfig.bg }]}>
+                  <Text style={[styles.priorityText, { color: pConfig.color }]}>
+                    {pConfig.label}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })
         )}
-        <View style={{ height: 120 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
+
+      {/* FAB */}
+      <Pressable style={styles.fab} onPress={() => setShowModal(true)}>
+        <Ionicons name="add" size={28} color="#FFFFFF" />
+      </Pressable>
 
       {/* Add Modal */}
       <Modal visible={showModal} animationType="slide" transparent>
@@ -140,91 +163,53 @@ export default function TasksScreen() {
             <View style={styles.modalHandle} />
             <Text style={styles.modalTitle}>Nueva Tarea</Text>
 
+            <Text style={styles.inputLabel}>Título</Text>
             <View style={styles.inputContainer}>
-              <Ionicons
-                name="document-text-outline"
-                size={20}
-                color={COLORS.textSecondary}
-                style={styles.inputIcon}
-              />
               <TextInput
                 style={styles.input}
                 placeholder="Título de la tarea"
-                placeholderTextColor={COLORS.textTertiary}
+                placeholderTextColor="#BBBBBB"
                 value={title}
                 onChangeText={setTitle}
               />
             </View>
 
+            <Text style={styles.inputLabel}>Descripción</Text>
             <View style={styles.inputContainer}>
-              <Ionicons
-                name="information-circle-outline"
-                size={20}
-                color={COLORS.textSecondary}
-                style={styles.inputIcon}
-              />
               <TextInput
                 style={styles.input}
                 placeholder="Descripción (opcional)"
-                placeholderTextColor={COLORS.textTertiary}
+                placeholderTextColor="#BBBBBB"
                 value={description}
                 onChangeText={setDescription}
                 multiline
               />
             </View>
 
-            <Text style={styles.label}>Prioridad</Text>
+            <Text style={styles.inputLabel}>Prioridad</Text>
             <View style={styles.priorityRow}>
-              {PRIORITIES.map((p) => (
+              {(Object.keys(PRIORITY_CONFIG) as TaskPriority[]).map((p) => (
                 <Pressable
                   key={p}
                   style={[
                     styles.priorityChip,
                     priority === p && {
-                      backgroundColor: PRIORITY_COLORS[p] + '20',
-                      borderColor: PRIORITY_COLORS[p],
+                      backgroundColor: PRIORITY_CONFIG[p].bg,
+                      borderColor: PRIORITY_CONFIG[p].color,
                     },
                   ]}
                   onPress={() => setPriority(p)}
                 >
-                  <View
-                    style={[
-                      styles.priorityDot,
-                      { backgroundColor: PRIORITY_COLORS[p] },
-                    ]}
-                  />
                   <Text
                     style={[
                       styles.priorityChipText,
-                      {
-                        color:
-                          priority === p
-                            ? PRIORITY_COLORS[p]
-                            : COLORS.textSecondary,
-                      },
+                      { color: priority === p ? PRIORITY_CONFIG[p].color : '#AA9A8A' },
                     ]}
                   >
-                    {p === 'high' ? 'Alta' : p === 'medium' ? 'Media' : 'Baja'}
+                    {PRIORITY_CONFIG[p].label}
                   </Text>
                 </Pressable>
               ))}
-            </View>
-
-            <Text style={styles.label}>Fecha de vencimiento</Text>
-            <View style={styles.inputContainer}>
-              <Ionicons
-                name="calendar-outline"
-                size={20}
-                color={COLORS.textSecondary}
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                value={dueDate}
-                onChangeText={setDueDate}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor={COLORS.textTertiary}
-              />
             </View>
 
             <View style={styles.modalButtons}>
@@ -235,7 +220,7 @@ export default function TasksScreen() {
                 <Text style={styles.cancelText}>Cancelar</Text>
               </Pressable>
               <Pressable style={styles.saveButton} onPress={handleAdd}>
-                <Text style={styles.saveText}>Crear Tarea</Text>
+                <Text style={styles.saveText}>Crear</Text>
               </Pressable>
             </View>
           </View>
@@ -248,40 +233,62 @@ export default function TasksScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#F5F0EB',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingVertical: 12,
+  },
+  menuButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#3D2B1F',
+  },
+  bellButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 16,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
-    color: COLORS.textPrimary,
-    letterSpacing: -0.5,
+    color: '#3D2B1F',
   },
   subtitle: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: '#AA9A8A',
     marginTop: 2,
-    fontWeight: '500',
   },
-  headerBadge: {
-    backgroundColor: COLORS.primarySurface,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  headerBadgeText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.primary,
+  sortButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   filtersRow: {
-    marginTop: 16,
     marginBottom: 12,
   },
   filtersContent: {
@@ -292,17 +299,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: COLORS.surface,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: COLORS.divider,
+    borderColor: '#EDE8E3',
   },
   filterChipActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: '#C56A49',
+    borderColor: '#C56A49',
   },
   filterText: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: '#8A7A6A',
     fontWeight: '600',
   },
   filterTextActive: {
@@ -313,22 +320,91 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   emptyCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 32,
     alignItems: 'center',
     gap: 8,
-    borderWidth: 1,
-    borderColor: COLORS.divider,
   },
   emptyTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.textPrimary,
+    color: '#3D2B1F',
   },
   emptyText: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: '#AA9A8A',
+  },
+  taskCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#EDE8E3',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  checkboxDone: {
+    backgroundColor: '#C56A49',
+    borderColor: '#C56A49',
+  },
+  taskContent: {
+    flex: 1,
+  },
+  taskTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#3D2B1F',
+  },
+  taskDone: {
+    textDecorationLine: 'line-through',
+    color: '#AA9A8A',
+  },
+  taskDescription: {
+    fontSize: 12,
+    color: '#AA9A8A',
+    marginTop: 2,
+  },
+  priorityBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  priorityText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 90,
+    alignSelf: 'center',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#3D2B1F',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#3D2B1F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
   modalOverlay: {
     flex: 1,
@@ -336,99 +412,86 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modal: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
-    gap: 12,
   },
   modalHandle: {
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: COLORS.divider,
+    backgroundColor: '#EDE8E3',
     alignSelf: 'center',
-    marginBottom: 8,
+    marginBottom: 16,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.textPrimary,
+    color: '#3D2B1F',
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#5A4A3A',
     marginBottom: 8,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: '#F9F6F2',
     borderRadius: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: COLORS.divider,
-  },
-  inputIcon: {
-    marginRight: 10,
+    borderColor: '#EDE8E3',
+    marginBottom: 16,
   },
   input: {
-    flex: 1,
-    paddingVertical: 12,
-    fontSize: 14,
-    color: COLORS.textPrimary,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-    marginTop: 4,
+    paddingVertical: 14,
+    fontSize: 15,
+    color: '#3D2B1F',
   },
   priorityRow: {
     flexDirection: 'row',
     gap: 8,
+    marginBottom: 20,
   },
   priorityChip: {
     flex: 1,
-    flexDirection: 'row',
     paddingVertical: 10,
-    borderRadius: 12,
+    borderRadius: 10,
     alignItems: 'center',
-    justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: COLORS.divider,
-    gap: 6,
-  },
-  priorityDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    borderColor: '#EDE8E3',
   },
   priorityChipText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   modalButtons: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 16,
   },
   cancelButton: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
-    backgroundColor: COLORS.surfaceSecondary,
+    backgroundColor: '#F9F6F2',
     borderWidth: 1,
-    borderColor: COLORS.divider,
+    borderColor: '#EDE8E3',
   },
   cancelText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.textSecondary,
+    color: '#8A7A6A',
   },
   saveButton: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#C56A49',
   },
   saveText: {
     fontSize: 14,
