@@ -7,20 +7,16 @@ interface TaskContextType {
   tasks: Task[];
   loading: boolean;
   fetchTasks: () => Promise<void>;
-  addTask: (task: Omit<Task, 'id' | 'created_at' | 'user_id'>) => Promise<void>;
+  addTask: (task: Omit<Task, 'id' | 'created_at' | 'user_id'>) => Promise<string | null>;
   toggleTask: (taskId: string) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
-  updateTask: (taskId: string, updates: Partial<Task>) => Promise<void>;
+  updateTask: (taskId: string, updates: Partial<Task>) => Promise<string | null>;
 }
 
 const TaskContext = createContext<TaskContextType>({
-  tasks: [],
-  loading: false,
-  fetchTasks: async () => {},
-  addTask: async () => {},
-  toggleTask: async () => {},
-  deleteTask: async () => {},
-  updateTask: async () => {},
+  tasks: [], loading: false,
+  fetchTasks: async () => {}, addTask: async () => null,
+  toggleTask: async () => {}, deleteTask: async () => {}, updateTask: async () => null,
 });
 
 export function TaskProvider({ children }: { children: React.ReactNode }) {
@@ -31,18 +27,20 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   const fetchTasks = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-    if (data) setTasks(data as Task[]);
+    try {
+      const { data } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (data) setTasks(data as Task[]);
+    } catch (e) {
+      console.error('Error fetching tasks:', e);
+    }
     setLoading(false);
   }, [user]);
 
-  useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
+  useEffect(() => { fetchTasks(); }, [fetchTasks]);
 
   useEffect(() => {
     if (!user) return;
@@ -57,26 +55,46 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   }, [user, fetchTasks]);
 
   const addTask = useCallback(async (task: Omit<Task, 'id' | 'created_at' | 'user_id'>) => {
-    if (!user) return;
-    await supabase.from('tasks').insert({ ...task, user_id: user.id });
-    await fetchTasks();
+    if (!user) return 'No hay sesión';
+    try {
+      const { error } = await supabase.from('tasks').insert({ ...task, user_id: user.id });
+      if (error) return error.message;
+      await fetchTasks();
+      return null;
+    } catch (e: any) {
+      return e.message || 'Error al crear tarea';
+    }
   }, [user, fetchTasks]);
 
   const toggleTask = useCallback(async (taskId: string) => {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
-    await supabase.from('tasks').update({ is_done: !task.is_done }).eq('id', taskId);
-    await fetchTasks();
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+      await supabase.from('tasks').update({ is_done: !task.is_done }).eq('id', taskId);
+      await fetchTasks();
+    } catch (e) {
+      console.error('Error toggling task:', e);
+    }
   }, [tasks, fetchTasks]);
 
   const deleteTask = useCallback(async (taskId: string) => {
-    await supabase.from('tasks').delete().eq('id', taskId);
-    await fetchTasks();
+    try {
+      await supabase.from('tasks').delete().eq('id', taskId);
+      await fetchTasks();
+    } catch (e) {
+      console.error('Error deleting task:', e);
+    }
   }, [fetchTasks]);
 
   const updateTask = useCallback(async (taskId: string, updates: Partial<Task>) => {
-    await supabase.from('tasks').update(updates).eq('id', taskId);
-    await fetchTasks();
+    try {
+      const { error } = await supabase.from('tasks').update(updates).eq('id', taskId);
+      if (error) return error.message;
+      await fetchTasks();
+      return null;
+    } catch (e: any) {
+      return e.message || 'Error al actualizar tarea';
+    }
   }, [fetchTasks]);
 
   return (

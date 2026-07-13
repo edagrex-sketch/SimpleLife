@@ -7,14 +7,14 @@ interface CalendarContextType {
   events: CalendarEvent[];
   loading: boolean;
   fetchEvents: () => Promise<void>;
-  addEvent: (event: Omit<CalendarEvent, 'id' | 'created_at' | 'user_id'>) => Promise<void>;
+  addEvent: (event: Omit<CalendarEvent, 'id' | 'created_at' | 'user_id'>) => Promise<string | null>;
   deleteEvent: (id: string) => Promise<void>;
-  updateEvent: (id: string, updates: Partial<CalendarEvent>) => Promise<void>;
+  updateEvent: (id: string, updates: Partial<CalendarEvent>) => Promise<string | null>;
 }
 
 const CalendarContext = createContext<CalendarContextType>({
   events: [], loading: false, fetchEvents: async () => {},
-  addEvent: async () => {}, deleteEvent: async () => {}, updateEvent: async () => {},
+  addEvent: async () => null, deleteEvent: async () => {}, updateEvent: async () => null,
 });
 
 export function CalendarProvider({ children }: { children: React.ReactNode }) {
@@ -25,31 +25,51 @@ export function CalendarProvider({ children }: { children: React.ReactNode }) {
   const fetchEvents = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
-      .from('calendar_events')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('event_date', { ascending: true });
-    if (data) setEvents(data as CalendarEvent[]);
+    try {
+      const { data } = await supabase
+        .from('calendar_events')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('event_date', { ascending: true });
+      if (data) setEvents(data as CalendarEvent[]);
+    } catch (e) {
+      console.error('Error fetching events:', e);
+    }
     setLoading(false);
   }, [user]);
 
   useEffect(() => { fetchEvents(); }, [fetchEvents]);
 
   const addEvent = useCallback(async (event: Omit<CalendarEvent, 'id' | 'created_at' | 'user_id'>) => {
-    if (!user) return;
-    await supabase.from('calendar_events').insert({ ...event, user_id: user.id });
-    await fetchEvents();
+    if (!user) return 'No hay sesión';
+    try {
+      const { error } = await supabase.from('calendar_events').insert({ ...event, user_id: user.id });
+      if (error) return error.message;
+      await fetchEvents();
+      return null;
+    } catch (e: any) {
+      return e.message || 'Error al crear evento';
+    }
   }, [user, fetchEvents]);
 
   const deleteEvent = useCallback(async (id: string) => {
-    await supabase.from('calendar_events').delete().eq('id', id);
-    await fetchEvents();
+    try {
+      await supabase.from('calendar_events').delete().eq('id', id);
+      await fetchEvents();
+    } catch (e) {
+      console.error('Error deleting event:', e);
+    }
   }, [fetchEvents]);
 
   const updateEvent = useCallback(async (id: string, updates: Partial<CalendarEvent>) => {
-    await supabase.from('calendar_events').update(updates).eq('id', id);
-    await fetchEvents();
+    try {
+      const { error } = await supabase.from('calendar_events').update(updates).eq('id', id);
+      if (error) return error.message;
+      await fetchEvents();
+      return null;
+    } catch (e: any) {
+      return e.message || 'Error al actualizar evento';
+    }
   }, [fetchEvents]);
 
   return (

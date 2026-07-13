@@ -5,8 +5,8 @@ import TaskCard from '../components/TaskCard';
 import EmptyState from '../components/EmptyState';
 import { COLORS, PRIORITY_COLORS, PRIORITY_LABELS } from '../utils/colors';
 import { useTasks } from '../context/TaskContext';
-import { TaskPriority, Task } from '../types';
-import { today, randomId } from '../utils/helpers';
+import { TaskPriority } from '../types';
+import { today } from '../utils/helpers';
 
 const FILTERS = ['Todas', 'Hoy', 'Pendientes', 'Completadas'];
 const PRIORITIES: TaskPriority[] = ['low', 'medium', 'high'];
@@ -115,7 +115,7 @@ export default function TasksScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20 },
-  title: { fontSize: 28, fontWeight: '700', color: COLORS.textPrimary, fontFamily: 'Outfit' },
+  title: { fontSize: 28, fontWeight: '700', color: COLORS.textPrimary },
   count: { fontSize: 13, color: COLORS.textSecondary },
   filtersRow: { paddingHorizontal: 20, marginTop: 16, marginBottom: 12 },
   filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: COLORS.surface, marginRight: 8, borderWidth: 1, borderColor: COLORS.divider },
@@ -131,8 +131,8 @@ const styles = StyleSheet.create({
   fabText: { fontSize: 28, color: '#fff', lineHeight: 30 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   modal: { backgroundColor: COLORS.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, gap: 12 },
-  modalTitle: { fontSize: 20, fontWeight: '700', color: COLORS.textPrimary, fontFamily: 'Outfit', marginBottom: 8 },
-  input: { backgroundColor: COLORS.background, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: COLORS.textPrimary, fontFamily: 'Inter' },
+  modalTitle: { fontSize: 20, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 8 },
+  input: { backgroundColor: COLORS.background, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: COLORS.textPrimary },
   label: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary, marginTop: 4 },
   priorityRow: { flexDirection: 'row', gap: 8 },
   priorityChip: { flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.divider },

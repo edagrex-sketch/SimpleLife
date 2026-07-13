@@ -38,8 +38,8 @@ const styles = StyleSheet.create({
   categoryDot: { width: 4, height: 36, borderRadius: 2, marginRight: 12 },
   content: { flex: 1 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  title: { fontSize: 15, fontWeight: '600', color: COLORS.textPrimary, fontFamily: 'Outfit', flex: 1 },
-  amount: { fontSize: 16, fontWeight: '700', color: COLORS.primary, fontFamily: 'Outfit' },
+  title: { fontSize: 15, fontWeight: '600', color: COLORS.textPrimary, flex: 1 },
+  amount: { fontSize: 16, fontWeight: '700', color: COLORS.primary },
   category: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2 },
   date: { fontSize: 11, color: COLORS.textTertiary, marginTop: 2 },
 });

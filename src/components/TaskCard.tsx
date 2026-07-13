@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
   checkboxDone: { backgroundColor: COLORS.primary },
   checkmark: { color: '#fff', fontSize: 12, fontWeight: '700' },
   content: { flex: 1 },
-  title: { fontSize: 15, fontWeight: '600', color: COLORS.textPrimary, fontFamily: 'Outfit' },
+  title: { fontSize: 15, fontWeight: '600', color: COLORS.textPrimary },
   titleDone: { textDecorationLine: 'line-through', color: COLORS.textSecondary },
   description: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2 },
   meta: { flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 8 },

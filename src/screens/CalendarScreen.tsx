@@ -5,8 +5,7 @@ import EventCard from '../components/EventCard';
 import EmptyState from '../components/EmptyState';
 import { COLORS } from '../utils/colors';
 import { useCalendar } from '../context/CalendarContext';
-import { CalendarEvent } from '../types';
-import { MONTHS, DAYS, getMonthDays, today, randomId, formatDate } from '../utils/helpers';
+import { MONTHS, DAYS, getMonthDays, formatDate } from '../utils/helpers';
 
 export default function CalendarScreen() {
   const { events, addEvent, deleteEvent } = useCalendar();
@@ -134,11 +133,11 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20 },
-  title: { fontSize: 28, fontWeight: '700', color: COLORS.textPrimary, fontFamily: 'Outfit' },
+  title: { fontSize: 28, fontWeight: '700', color: COLORS.textPrimary },
   count: { fontSize: 13, color: COLORS.textSecondary },
   monthNav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginTop: 16, marginBottom: 8 },
   navArrow: { fontSize: 18, color: COLORS.primary, padding: 8 },
-  monthTitle: { fontSize: 18, fontWeight: '600', color: COLORS.textPrimary, fontFamily: 'Outfit' },
+  monthTitle: { fontSize: 18, fontWeight: '600', color: COLORS.textPrimary },
   weekdays: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 4 },
   weekday: { flex: 1, textAlign: 'center', fontSize: 11, color: COLORS.textTertiary, fontWeight: '600' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16 },
@@ -149,7 +148,7 @@ const styles = StyleSheet.create({
   dayTextActive: { color: '#fff', fontWeight: '700' },
   dayDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: COLORS.primary, marginTop: 2 },
   eventsSection: { flex: 1, paddingHorizontal: 20, marginTop: 12 },
-  eventsTitle: { fontSize: 16, fontWeight: '600', color: COLORS.textPrimary, fontFamily: 'Outfit', marginBottom: 8 },
+  eventsTitle: { fontSize: 16, fontWeight: '600', color: COLORS.textPrimary, marginBottom: 8 },
   eventsList: { flex: 1 },
   fab: {
     position: 'absolute', bottom: 20, right: 20, width: 56, height: 56, borderRadius: 28,
@@ -159,8 +158,8 @@ const styles = StyleSheet.create({
   fabText: { fontSize: 28, color: '#fff', lineHeight: 30 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   modal: { backgroundColor: COLORS.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, gap: 12 },
-  modalTitle: { fontSize: 20, fontWeight: '700', color: COLORS.textPrimary, fontFamily: 'Outfit', marginBottom: 8 },
-  input: { backgroundColor: COLORS.background, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: COLORS.textPrimary, fontFamily: 'Inter' },
+  modalTitle: { fontSize: 20, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 8 },
+  input: { backgroundColor: COLORS.background, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: COLORS.textPrimary },
   modalButtons: { flexDirection: 'row', gap: 12, marginTop: 16 },
   cancelButton: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center', backgroundColor: COLORS.background },
   cancelText: { fontSize: 14, fontWeight: '600', color: COLORS.textSecondary },

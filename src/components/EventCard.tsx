@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   timeEnd: { fontSize: 11, color: COLORS.textTertiary, marginTop: 2 },
   divider: { width: 2, height: 32, backgroundColor: COLORS.divider, marginHorizontal: 12, borderRadius: 1 },
   content: { flex: 1 },
-  title: { fontSize: 15, fontWeight: '600', color: COLORS.textPrimary, fontFamily: 'Outfit' },
+  title: { fontSize: 15, fontWeight: '600', color: COLORS.textPrimary },
   desc: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2 },
   category: { fontSize: 11, color: COLORS.textTertiary, marginTop: 2 },
 });

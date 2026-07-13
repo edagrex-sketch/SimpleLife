@@ -36,8 +36,8 @@ const styles = StyleSheet.create({
     width: 44, height: 44, borderRadius: 14, backgroundColor: COLORS.primary + '20',
     alignItems: 'center', justifyContent: 'center', marginRight: 12,
   },
-  avatarText: { fontSize: 20, fontWeight: '700', color: COLORS.primary, fontFamily: 'Outfit' },
+  avatarText: { fontSize: 20, fontWeight: '700', color: COLORS.primary },
   content: { flex: 1 },
-  name: { fontSize: 16, fontWeight: '600', color: COLORS.textPrimary, fontFamily: 'Outfit' },
+  name: { fontSize: 16, fontWeight: '600', color: COLORS.textPrimary },
   code: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2 },
 });
