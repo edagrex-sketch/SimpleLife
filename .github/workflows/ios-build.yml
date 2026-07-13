@@ -11,7 +11,7 @@ on:
         description: 'Path to iOS project (e.g., "ios" for React Native)'
         required: false
         type: string
-        default: '.'
+        default: 'ios'
       scheme:
         description: 'Xcode scheme to build (auto-detected if empty)'
         required: false
@@ -161,9 +161,7 @@ jobs:
            if [ -f "Podfile" ]; then
              echo "Running pod install (with repo update)..."
              set +e
-            # export USE_FRAMEWORKS=static
-            rm -rf Pods Podfile.lock  # Fresh install
-            pod install --repo-update 2>&1
+             pod install 2>&1
             RC=$?
             set -e
             echo "pod install exit code: $RC"

@@ -1,5 +1,5 @@
 {
-  "name": "NovedosaApp",
+  "name": "SimpleLife",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -12,6 +12,7 @@
   "dependencies": {
     "@react-native-async-storage/async-storage": "^3.1.1",
     "@react-native/new-app-screen": "0.86.0",
+    "@supabase/supabase-js": "^2.110.3",
     "react": "19.2.3",
     "react-native": "0.86.0",
     "react-native-gesture-handler": "^3.0.2",

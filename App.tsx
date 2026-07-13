@@ -1,147 +1,100 @@
-import React, { useState, useRef } from 'react';
-import { StyleSheet, Text, Pressable, View, Dimensions, StatusBar } from 'react-native';
-import {
-  SafeAreaProvider,
-} from 'react-native-safe-area-context';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
-  interpolate,
-  Extrapolation,
-} from 'react-native-reanimated';
+import React, { useState } from 'react';
+import { StyleSheet, Text, Pressable, View, StatusBar } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { MoodProvider } from './src/context/MoodContext';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { TaskProvider } from './src/context/TaskContext';
+import { ExpensesProvider } from './src/context/ExpensesContext';
+import { CalendarProvider } from './src/context/CalendarContext';
+import { SpacesProvider } from './src/context/SpacesContext';
+import { ProfileProvider } from './src/context/ProfileContext';
+import LoginScreen from './src/screens/LoginScreen';
+import RegisterScreen from './src/screens/RegisterScreen';
 import HomeScreen from './src/screens/HomeScreen';
-import TimelineScreen from './src/screens/TimelineScreen';
-import StatsScreen from './src/screens/StatsScreen';
-import NewEntryScreen from './src/screens/NewEntryScreen';
+import TasksScreen from './src/screens/TasksScreen';
+import CalendarScreen from './src/screens/CalendarScreen';
+import ExpensesScreen from './src/screens/ExpensesScreen';
+import SpacesScreen from './src/screens/SpacesScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
+import AICoachSheet from './src/components/AICoachSheet';
+import { COLORS } from './src/utils/colors';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+type Tab = 'home' | 'tasks' | 'calendar' | 'expenses' | 'spaces';
 
-type Screen = 'home' | 'timeline' | 'stats';
-
-const TABS = [
-  { key: 'home' as Screen, label: 'Hoy', icon: '☀️' },
-  { key: 'timeline' as Screen, label: 'Diario', icon: '📖' },
-  { key: 'stats' as Screen, label: 'Estadísticas', icon: '📊' },
+const TABS: { key: Tab; label: string; icon: string }[] = [
+  { key: 'home', label: 'Inicio', icon: '🏠' },
+  { key: 'tasks', label: 'Tareas', icon: '📋' },
+  { key: 'calendar', label: 'Calendario', icon: '📅' },
+  { key: 'expenses', label: 'Gastos', icon: '💰' },
+  { key: 'spaces', label: 'Espacios', icon: '👥' },
 ];
 
-function TabBar({
-  active,
-  onTabPress,
-  onAddPress,
-}: {
-  active: Screen;
-  onTabPress: (screen: Screen) => void;
-  onAddPress: () => void;
-}) {
-  const indicatorPosition = useSharedValue(0);
-
-  React.useEffect(() => {
-    const idx = TABS.findIndex(t => t.key === active);
-    indicatorPosition.value = withSpring(idx * (SCREEN_WIDTH / TABS.length), {
-      damping: 15,
-      stiffness: 120,
-    });
-  }, [active]);
-
-  const indicatorStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: indicatorPosition.value }],
-  }));
-
+function TabBar({ active, onTabPress }: { active: Tab; onTabPress: (tab: Tab) => void }) {
   return (
     <View style={styles.tabBar}>
       <View style={styles.tabRow}>
-        {TABS.map((tab, i) => {
+        {TABS.map((tab) => {
           const isActive = active === tab.key;
           return (
-            <Pressable
-              key={tab.key}
-              onPress={() => onTabPress(tab.key)}
-              style={styles.tab}>
-              <Text style={styles.tabIcon}>{tab.icon}</Text>
-              <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
-                {tab.label}
-              </Text>
+            <Pressable key={tab.key} onPress={() => onTabPress(tab.key)} style={styles.tab}>
+              <Text style={[styles.tabIcon, isActive && styles.tabIconActive]}>{tab.icon}</Text>
+              <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>{tab.label}</Text>
+              {isActive && <View style={styles.tabIndicator} />}
             </Pressable>
           );
         })}
       </View>
-      <Pressable onPress={onAddPress} style={styles.fab}>
-        <Text style={styles.fabText}>+</Text>
-      </Pressable>
-      <Animated.View style={[styles.indicator, indicatorStyle]} />
     </View>
   );
 }
 
+function AuthFlow() {
+  const [showLogin, setShowLogin] = useState(true);
+  return showLogin ? (
+    <LoginScreen onSwitchToRegister={() => setShowLogin(false)} />
+  ) : (
+    <RegisterScreen onSwitchToLogin={() => setShowLogin(true)} />
+  );
+}
+
 function MainApp() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('home');
-  const [showNewEntry, setShowNewEntry] = useState(false);
-  const slideAnim = useSharedValue(0);
+  const { user, loading } = useAuth();
+  const [currentTab, setCurrentTab] = useState<Tab>('home');
+  const [showAI, setShowAI] = useState(false);
 
-  React.useEffect(() => {
-    slideAnim.value = withTiming(showNewEntry ? 1 : 0, { duration: 300 });
-  }, [showNewEntry]);
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>🌅</Text>
+        <Text style={styles.loadingTitle}>SimpleLife</Text>
+      </View>
+    );
+  }
 
-  const newEntryStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(
-          slideAnim.value,
-          [0, 1],
-          [SCREEN_WIDTH, 0],
-          Extrapolation.CLAMP,
-        ),
-      },
-    ],
-  }));
-
-  const mainStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(
-          slideAnim.value,
-          [0, 1],
-          [0, -SCREEN_WIDTH * 0.15],
-          Extrapolation.CLAMP,
-        ),
-      },
-    ],
-    opacity: interpolate(slideAnim.value, [0, 1], [1, 0.7]),
-  }));
+  if (!user) {
+    return <AuthFlow />;
+  }
 
   const renderScreen = () => {
-    switch (currentScreen) {
-      case 'home':
-        return <HomeScreen onNavigate={(s) => {
-          if (s === 'new-entry') setShowNewEntry(true);
-        }} />;
-      case 'timeline':
-        return <TimelineScreen />;
-      case 'stats':
-        return <StatsScreen />;
+    switch (currentTab) {
+      case 'home': return <HomeScreen />;
+      case 'tasks': return <TasksScreen />;
+      case 'calendar': return <CalendarScreen />;
+      case 'expenses': return <ExpensesScreen />;
+      case 'spaces': return <SpacesScreen />;
+      default: return <HomeScreen />;
     }
   };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
-      <Animated.View style={[styles.mainContent, mainStyle]}>
-        {renderScreen()}
-        {!showNewEntry && (
-          <TabBar
-            active={currentScreen}
-            onTabPress={setCurrentScreen}
-            onAddPress={() => setShowNewEntry(true)}
-          />
-        )}
-      </Animated.View>
-      <Animated.View style={[styles.newEntryOverlay, newEntryStyle]}>
-        <NewEntryScreen onBack={() => setShowNewEntry(false)} />
-      </Animated.View>
+      {renderScreen()}
+      <TabBar active={currentTab} onTabPress={setCurrentTab} />
+      <Pressable style={styles.aiFab} onPress={() => setShowAI(true)}>
+        <Text style={styles.aiFabText}>🤖</Text>
+      </Pressable>
+      <AICoachSheet visible={showAI} onClose={() => setShowAI(false)} />
     </View>
   );
 }
@@ -150,83 +103,54 @@ function App() {
   return (
     <GestureHandlerRootView style={styles.container}>
       <SafeAreaProvider>
-        <MoodProvider>
-          <MainApp />
-        </MoodProvider>
+        <AuthProvider>
+          <TaskProvider>
+            <ExpensesProvider>
+              <CalendarProvider>
+                <SpacesProvider>
+                  <ProfileProvider>
+                    <MainApp />
+                  </ProfileProvider>
+                </SpacesProvider>
+              </CalendarProvider>
+            </ExpensesProvider>
+          </TaskProvider>
+        </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F3F4F6' },
-  mainContent: { flex: 1 },
-  newEntryOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#F3F4F6',
-    zIndex: 10,
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  loadingContainer: { flex: 1, backgroundColor: COLORS.background, alignItems: 'center', justifyContent: 'center' },
+  loadingText: { fontSize: 64, marginBottom: 8 },
+  loadingTitle: { fontSize: 28, fontWeight: '700', color: COLORS.textPrimary, fontFamily: 'Outfit' },
   tabBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    paddingBottom: 24,
+    paddingBottom: 28,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.06,
     shadowRadius: 12,
     elevation: 8,
   },
-  tabRow: {
-    flexDirection: 'row',
-    paddingTop: 12,
-    paddingBottom: 8,
+  tabRow: { flexDirection: 'row', paddingTop: 8, paddingBottom: 4 },
+  tab: { flex: 1, alignItems: 'center', paddingVertical: 6 },
+  tabIcon: { fontSize: 20, marginBottom: 2, opacity: 0.5 },
+  tabIconActive: { opacity: 1 },
+  tabLabel: { fontSize: 10, fontWeight: '600', color: COLORS.textSecondary },
+  tabLabelActive: { color: COLORS.primary },
+  tabIndicator: { width: 20, height: 3, backgroundColor: COLORS.primary, borderRadius: 2, marginTop: 4 },
+  aiFab: {
+    position: 'absolute', bottom: 100, right: 16, width: 48, height: 48, borderRadius: 24,
+    backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 4,
+    borderWidth: 1, borderColor: COLORS.divider,
   },
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  tabIcon: { fontSize: 20, marginBottom: 2 },
-  tabLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#9CA3AF',
-  },
-  tabLabelActive: { color: '#3B82F6' },
-  indicator: {
-    position: 'absolute',
-    top: 0,
-    width: SCREEN_WIDTH / TABS.length,
-    height: 3,
-    backgroundColor: '#3B82F6',
-    borderRadius: 2,
-  },
-  fab: {
-    position: 'absolute',
-    top: -24,
-    alignSelf: 'center',
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: '#3B82F6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#3B82F6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  fabText: { fontSize: 28, color: '#fff', marginTop: -2 },
+  aiFabText: { fontSize: 22 },
 });
 
 export default App;
