@@ -1,18 +1,17 @@
 {
-  "project": "Aura",
+  "project": "SimpleLife",
   "platform": "ios",
   "github": {
     "owner": "edagrex-sketch",
-    "repo": "Aura"
+    "repo": "SimpleLife"
   },
   "ios": {
     "path": "ios",
-    "scheme": "NovedosaApp",
+    "scheme": "SimpleLife",
     "signing": false
   },
-  "flutter": {
-    "watch": {}
-  },
   "reactNative": {},
-  "mobai": {}
+  "mobai": {
+    "url": "http://localhost:8686"
+  }
 }
