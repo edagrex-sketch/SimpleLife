@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Modal } from 'react-native';
-import GlassBox from './GlassBox';
 import { COLORS } from '../utils/colors';
 
 interface AICoachSheetProps {

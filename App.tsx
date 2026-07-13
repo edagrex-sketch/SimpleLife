@@ -17,36 +17,8 @@ import ExpensesScreen from './src/screens/ExpensesScreen';
 import SpacesScreen from './src/screens/SpacesScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import AICoachSheet from './src/components/AICoachSheet';
-import { COLORS } from './src/utils/colors';
-
-type Tab = 'home' | 'tasks' | 'calendar' | 'expenses' | 'spaces';
-
-const TABS: { key: Tab; label: string; icon: string }[] = [
-  { key: 'home', label: 'Inicio', icon: '🏠' },
-  { key: 'tasks', label: 'Tareas', icon: '📋' },
-  { key: 'calendar', label: 'Calendario', icon: '📅' },
-  { key: 'expenses', label: 'Gastos', icon: '💰' },
-  { key: 'spaces', label: 'Espacios', icon: '👥' },
-];
-
-function TabBar({ active, onTabPress }: { active: Tab; onTabPress: (tab: Tab) => void }) {
-  return (
-    <View style={styles.tabBar}>
-      <View style={styles.tabRow}>
-        {TABS.map((tab) => {
-          const isActive = active === tab.key;
-          return (
-            <Pressable key={tab.key} onPress={() => onTabPress(tab.key)} style={styles.tab}>
-              <Text style={[styles.tabIcon, isActive && styles.tabIconActive]}>{tab.icon}</Text>
-              <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>{tab.label}</Text>
-              {isActive && <View style={styles.tabIndicator} />}
-            </Pressable>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
+import FloatingTabBar, { TabId } from './src/components/FloatingTabBar';
+import { COLORS, SHADOWS } from './src/utils/colors';
 
 function AuthFlow() {
   const [showLogin, setShowLogin] = useState(true);
@@ -59,14 +31,17 @@ function AuthFlow() {
 
 function MainApp() {
   const { user, loading } = useAuth();
-  const [currentTab, setCurrentTab] = useState<Tab>('home');
+  const [currentTab, setCurrentTab] = useState<TabId>('home');
   const [showAI, setShowAI] = useState(false);
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>🌅</Text>
-        <Text style={styles.loadingTitle}>SimpleLife</Text>
+        <View style={styles.loadingIconContainer}>
+          <Text style={styles.loadingIcon}>🌅</Text>
+        </View>
+        <Text style={styles.loadingTitle}>VidaSimple</Text>
+        <Text style={styles.loadingSubtitle}>Tu vida, simplificada</Text>
       </View>
     );
   }
@@ -90,10 +65,11 @@ function MainApp() {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
       {renderScreen()}
-      <TabBar active={currentTab} onTabPress={setCurrentTab} />
-      <Pressable style={styles.aiFab} onPress={() => setShowAI(true)}>
-        <Text style={styles.aiFabText}>🤖</Text>
-      </Pressable>
+      <FloatingTabBar
+        activeTab={currentTab}
+        onTabPress={setCurrentTab}
+        onFabPress={() => setShowAI(true)}
+      />
       <AICoachSheet visible={showAI} onClose={() => setShowAI(false)} />
     </View>
   );
@@ -123,34 +99,32 @@ function App() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  loadingContainer: { flex: 1, backgroundColor: COLORS.background, alignItems: 'center', justifyContent: 'center' },
-  loadingText: { fontSize: 64, marginBottom: 8 },
-  loadingTitle: { fontSize: 28, fontWeight: '700', color: COLORS.textPrimary, fontFamily: 'Outfit' },
-  tabBar: {
-    backgroundColor: COLORS.surface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingBottom: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 8,
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
   },
-  tabRow: { flexDirection: 'row', paddingTop: 8, paddingBottom: 4 },
-  tab: { flex: 1, alignItems: 'center', paddingVertical: 6 },
-  tabIcon: { fontSize: 20, marginBottom: 2, opacity: 0.5 },
-  tabIconActive: { opacity: 1 },
-  tabLabel: { fontSize: 10, fontWeight: '600', color: COLORS.textSecondary },
-  tabLabelActive: { color: COLORS.primary },
-  tabIndicator: { width: 20, height: 3, backgroundColor: COLORS.primary, borderRadius: 2, marginTop: 4 },
-  aiFab: {
-    position: 'absolute', bottom: 100, right: 16, width: 48, height: 48, borderRadius: 24,
-    backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 4,
-    borderWidth: 1, borderColor: COLORS.divider,
+  loadingIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.primarySurface,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  aiFabText: { fontSize: 22 },
+  loadingIcon: { fontSize: 40 },
+  loadingTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  loadingSubtitle: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+  },
 });
 
 export default App;

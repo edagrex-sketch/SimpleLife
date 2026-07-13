@@ -1,12 +1,30 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TextInput, Pressable, Modal, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TextInput,
+  Pressable,
+  Modal,
+  StyleSheet,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import ExpenseCard from '../components/ExpenseCard';
-import EmptyState from '../components/EmptyState';
-import { COLORS } from '../utils/colors';
+import { COLORS, SHADOWS, EXPENSE_CATEGORIES } from '../utils/colors';
 import { useExpenses } from '../context/ExpensesContext';
-import { EXPENSE_CATEGORIES } from '../utils/colors';
-import { today, formatDate, formatAmount } from '../utils/helpers';
+import { today, formatAmount } from '../utils/helpers';
+
+const CATEGORY_ICONS: Record<string, string> = {
+  Comida: 'restaurant-outline',
+  Transporte: 'car-outline',
+  Casa: 'home-outline',
+  Salud: 'medical-outline',
+  Entretenimiento: 'game-controller-outline',
+  Educación: 'school-outline',
+  Ropa: 'shirt-outline',
+  Otros: 'ellipsis-horizontal-outline',
+};
 
 export default function ExpensesScreen() {
   const { expenses, addExpense, deleteExpense } = useExpenses();
@@ -17,6 +35,13 @@ export default function ExpensesScreen() {
   const [date, setDate] = useState(today());
 
   const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const thisMonth = expenses.filter((e) => {
+    if (!e.date) return false;
+    const d = new Date(e.date);
+    const now = new Date();
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  const monthTotal = thisMonth.reduce((sum, e) => sum + e.amount, 0);
 
   const handleAdd = async () => {
     if (!title.trim() || !amount) return;
@@ -35,52 +60,170 @@ export default function ExpensesScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Gastos</Text>
-        <Text style={styles.total}>{formatAmount(total)}</Text>
+        <View>
+          <Text style={styles.title}>Gastos</Text>
+          <Text style={styles.subtitle}>{expenses.length} registros</Text>
+        </View>
       </View>
 
-      <View style={styles.summary}>
-        <Text style={styles.summaryLabel}>Total gastado</Text>
-        <Text style={styles.summaryAmount}>{formatAmount(total)}</Text>
+      {/* Summary Card */}
+      <View style={styles.summaryCard}>
+        <View style={styles.summaryRow}>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>Total</Text>
+            <Text style={styles.summaryAmount}>{formatAmount(total)}</Text>
+          </View>
+          <View style={styles.summaryDivider} />
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>Este mes</Text>
+            <Text style={[styles.summaryAmount, { color: COLORS.tertiary }]}>
+              {formatAmount(monthTotal)}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.summaryProgress}>
+          <View style={styles.progressBar}>
+            <View
+              style={[
+                styles.progressFill,
+                {
+                  width: `${Math.min((monthTotal / (total || 1)) * 100, 100)}%`,
+                },
+              ]}
+            />
+          </View>
+        </View>
       </View>
 
-      <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
+      {/* Expenses List */}
+      <ScrollView
+        style={styles.list}
+        showsVerticalScrollIndicator={false}
+      >
         {expenses.length === 0 ? (
-          <EmptyState icon="💰" title="Sin gastos" subtitle="Registra tu primer gasto" />
+          <View style={styles.emptyCard}>
+            <Ionicons
+              name="wallet-outline"
+              size={48}
+              color={COLORS.textTertiary}
+            />
+            <Text style={styles.emptyTitle}>Sin gastos</Text>
+            <Text style={styles.emptyText}>Registra tu primer gasto</Text>
+          </View>
         ) : (
-          expenses.map(expense => (
-            <ExpenseCard key={expense.id} expense={expense} onDelete={() => deleteExpense(expense.id)} />
+          expenses.map((expense) => (
+            <ExpenseCard
+              key={expense.id}
+              expense={expense}
+              onDelete={() => deleteExpense(expense.id)}
+            />
           ))
         )}
-        <View style={{ height: 100 }} />
+        <View style={{ height: 120 }} />
       </ScrollView>
 
-      <Pressable style={styles.fab} onPress={() => setShowModal(true)}>
-        <Text style={styles.fabText}>+</Text>
-      </Pressable>
-
+      {/* Add Modal */}
       <Modal visible={showModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
+            <View style={styles.modalHandle} />
             <Text style={styles.modalTitle}>Nuevo Gasto</Text>
-            <TextInput style={styles.input} placeholder="Título" placeholderTextColor={COLORS.textTertiary} value={title} onChangeText={setTitle} />
-            <TextInput style={styles.input} placeholder="Monto" placeholderTextColor={COLORS.textTertiary} value={amount} onChangeText={setAmount} keyboardType="decimal-pad" />
+
+            <View style={styles.inputContainer}>
+              <Ionicons
+                name="document-text-outline"
+                size={20}
+                color={COLORS.textSecondary}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Descripción"
+                placeholderTextColor={COLORS.textTertiary}
+                value={title}
+                onChangeText={setTitle}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Ionicons
+                name="cash-outline"
+                size={20}
+                color={COLORS.textSecondary}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Monto"
+                placeholderTextColor={COLORS.textTertiary}
+                value={amount}
+                onChangeText={setAmount}
+                keyboardType="decimal-pad"
+              />
+            </View>
+
             <Text style={styles.label}>Categoría</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {EXPENSE_CATEGORIES.map(c => (
-                <Pressable key={c} style={[styles.categoryChip, category === c && styles.categoryChipActive]} onPress={() => setCategory(c)}>
-                  <Text style={[styles.categoryText, category === c && styles.categoryTextActive]}>{c}</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.categoryScroll}
+            >
+              {EXPENSE_CATEGORIES.map((c) => (
+                <Pressable
+                  key={c}
+                  style={[
+                    styles.categoryChip,
+                    category === c && styles.categoryChipActive,
+                  ]}
+                  onPress={() => setCategory(c)}
+                >
+                  <Ionicons
+                    name={
+                      (CATEGORY_ICONS[c] as any) ||
+                      'ellipsis-horizontal-outline'
+                    }
+                    size={16}
+                    color={category === c ? '#FFFFFF' : COLORS.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.categoryText,
+                      category === c && styles.categoryTextActive,
+                    ]}
+                  >
+                    {c}
+                  </Text>
                 </Pressable>
               ))}
             </ScrollView>
-            <TextInput style={styles.input} value={date} onChangeText={setDate} placeholder="YYYY-MM-DD" />
+
+            <View style={styles.inputContainer}>
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={COLORS.textSecondary}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                value={date}
+                onChangeText={setDate}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={COLORS.textTertiary}
+              />
+            </View>
+
             <View style={styles.modalButtons}>
-              <Pressable style={styles.cancelButton} onPress={() => setShowModal(false)}>
+              <Pressable
+                style={styles.cancelButton}
+                onPress={() => setShowModal(false)}
+              >
                 <Text style={styles.cancelText}>Cancelar</Text>
               </Pressable>
               <Pressable style={styles.saveButton} onPress={handleAdd}>
-                <Text style={styles.saveText}>Crear</Text>
+                <Text style={styles.saveText}>Guardar Gasto</Text>
               </Pressable>
             </View>
           </View>
@@ -91,32 +234,206 @@ export default function ExpensesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20 },
-  title: { fontSize: 28, fontWeight: '700', color: COLORS.textPrimary },
-  total: { fontSize: 20, fontWeight: '700', color: COLORS.primary },
-  summary: { marginHorizontal: 20, marginTop: 16, marginBottom: 12, padding: 20, backgroundColor: COLORS.surface, borderRadius: 20, alignItems: 'center', borderWidth: 1, borderColor: COLORS.divider },
-  summaryLabel: { fontSize: 13, color: COLORS.textSecondary },
-  summaryAmount: { fontSize: 32, fontWeight: '700', color: COLORS.primary, marginTop: 4 },
-  list: { flex: 1, paddingHorizontal: 20 },
-  fab: {
-    position: 'absolute', bottom: 20, right: 20, width: 56, height: 56, borderRadius: 28,
-    backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 6,
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
   },
-  fabText: { fontSize: 28, color: '#fff', lineHeight: 30 },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  modal: { backgroundColor: COLORS.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, gap: 12 },
-  modalTitle: { fontSize: 20, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 8 },
-  input: { backgroundColor: COLORS.background, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: COLORS.textPrimary },
-  label: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary, marginTop: 4 },
-  categoryChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16, backgroundColor: COLORS.background, marginRight: 8, borderWidth: 1, borderColor: COLORS.divider },
-  categoryChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  categoryText: { fontSize: 12, color: COLORS.textSecondary, fontWeight: '500' },
-  categoryTextActive: { color: '#fff' },
-  modalButtons: { flexDirection: 'row', gap: 12, marginTop: 16 },
-  cancelButton: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center', backgroundColor: COLORS.background },
-  cancelText: { fontSize: 14, fontWeight: '600', color: COLORS.textSecondary },
-  saveButton: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center', backgroundColor: COLORS.primary },
-  saveText: { fontSize: 14, fontWeight: '600', color: '#fff' },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  summaryCard: {
+    marginHorizontal: 20,
+    marginTop: 16,
+    marginBottom: 12,
+    padding: 20,
+    backgroundColor: COLORS.surface,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+    ...SHADOWS.medium,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  summaryItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  summaryAmount: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  summaryDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: COLORS.divider,
+  },
+  summaryProgress: {
+    marginTop: 16,
+  },
+  progressBar: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.surfaceSecondary,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+    backgroundColor: COLORS.primary,
+  },
+  list: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  emptyCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+  },
+  emptyText: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  modal: {
+    backgroundColor: COLORS.surface,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    gap: 12,
+  },
+  modalHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: COLORS.divider,
+    alignSelf: 'center',
+    marginBottom: 8,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+    marginBottom: 8,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surfaceSecondary,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: COLORS.textPrimary,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+    marginTop: 4,
+  },
+  categoryScroll: {
+    marginBottom: 4,
+  },
+  categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: COLORS.surfaceSecondary,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+    gap: 6,
+  },
+  categoryChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  categoryText: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    fontWeight: '600',
+  },
+  categoryTextActive: {
+    color: '#FFFFFF',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    backgroundColor: COLORS.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+  },
+  cancelText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  saveButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    backgroundColor: COLORS.primary,
+  },
+  saveText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
 });

@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
-import { COLORS } from '../utils/colors';
 
 interface GlassBoxProps {
   children: React.ReactNode;
