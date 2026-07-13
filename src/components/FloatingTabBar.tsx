@@ -6,14 +6,14 @@ import Animated, {
   withSpring,
   interpolate,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { COLORS, SHADOWS } from '../utils/colors';
 
 export type TabId = 'home' | 'tasks' | 'calendar' | 'expenses' | 'spaces';
 
 interface Tab {
   id: TabId;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: string;
   label: string;
 }
 

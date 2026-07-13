@@ -1,4 +1,7 @@
 {
   "name": "SimpleLife",
-  "displayName": "SimpleLife"
+  "displayName": "SimpleLife",
+  "plugins": [
+    "expo-asset"
+  ]
 }

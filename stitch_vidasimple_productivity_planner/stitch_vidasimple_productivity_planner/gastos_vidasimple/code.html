@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>VidaSimple - Gastos</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "surface-container-highest": "#e1e2ed",
+                "on-primary-fixed-variant": "#003ea8",
+                "primary": "#004ac6",
+                "on-primary-container": "#eeefff",
+                "on-background": "#191b23",
+                "on-primary": "#ffffff",
+                "on-secondary-container": "#006f64",
+                "tertiary": "#943700",
+                "surface-container-high": "#e7e7f3",
+                "surface-container-low": "#f3f3fe",
+                "on-secondary": "#ffffff",
+                "on-tertiary-fixed": "#360f00",
+                "surface-bright": "#faf8ff",
+                "inverse-on-surface": "#f0f0fb",
+                "tertiary-fixed": "#ffdbcd",
+                "primary-fixed": "#dbe1ff",
+                "on-tertiary-container": "#ffede6",
+                "surface-container-lowest": "#ffffff",
+                "inverse-primary": "#b4c5ff",
+                "surface-dim": "#d9d9e5",
+                "secondary-fixed": "#71f8e4",
+                "on-error": "#ffffff",
+                "on-secondary-fixed": "#00201c",
+                "secondary-container": "#6df5e1",
+                "error-container": "#ffdad6",
+                "primary-container": "#2563eb",
+                "on-primary-fixed": "#00174b",
+                "surface-variant": "#e1e2ed",
+                "on-surface": "#191b23",
+                "background": "#faf8ff",
+                "on-tertiary-fixed-variant": "#7d2d00",
+                "error": "#ba1a1a",
+                "on-surface-variant": "#434655",
+                "on-error-container": "#93000a",
+                "inverse-surface": "#2e3039",
+                "on-secondary-fixed-variant": "#005048",
+                "secondary": "#006b5f",
+                "on-tertiary": "#ffffff",
+                "tertiary-fixed-dim": "#ffb596",
+                "surface-container": "#ededf9",
+                "surface-tint": "#0053db",
+                "primary-fixed-dim": "#b4c5ff",
+                "outline": "#737686",
+                "surface": "#faf8ff",
+                "tertiary-container": "#bc4800",
+                "secondary-fixed-dim": "#4fdbc8",
+                "outline-variant": "#c3c6d7"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "xxl": "48px",
+                "sm": "8px",
+                "xl": "32px",
+                "lg": "24px",
+                "safe_margin": "20px",
+                "gutter": "16px",
+                "base": "4px",
+                "md": "16px",
+                "xs": "4px"
+            },
+            "fontFamily": {
+                "body-lg": ["Inter"],
+                "h1": ["Inter"],
+                "label-caps": ["Inter"],
+                "h3": ["Inter"],
+                "h2": ["Inter"],
+                "body-md": ["Inter"],
+                "button": ["Inter"]
+            },
+            "fontSize": {
+                "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                "h1": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                "h3": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                "h2": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                "button": ["14px", {"lineHeight": "20px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { -webkit-tap-highlight-color: transparent; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .donut-chart {
+            background: conic-gradient(
+                #004ac6 0% 35%, 
+                #006b5f 35% 60%, 
+                #bc4800 60% 80%, 
+                #e1e2ed 80% 100%
+            );
+            border-radius: 50%;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-background dark:bg-background w-full top-0 flex justify-between items-center px-safe_margin py-md w-full sticky z-10">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmS3ofkqArQIzBkQcp5SHcZ9OVjIJc1UM98KRsqri6D7qyYpDI6Ve3I5849pxtU03sAwpS2D6nEFjCAhrj2GQf3ktu9W9S1e7ICsRCo5GAN61expFBLVPCJAxnJHATrKZsJh6OFSt8sy1Msh9GTrNboLPYtiAGQFXptWLED1nGsvrL3fZh3FA_acdiYSiX74DhIBBgbFpze5cUB1iqWW9XxHPVwT-peDjrK4kI1AJessl0lgU3IWxqYWuxmpreZzpoF_OohIqm0NQ"/>
+</div>
+<h1 class="font-h2 text-h2 font-bold text-primary dark:text-inverse-primary">VidaSimple</h1>
+</div>
+<button class="text-on-surface-variant dark:text-on-surface-variant hover:opacity-80 transition-opacity active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</header>
+<main class="px-safe_margin py-md space-y-lg">
+<!-- Balance Principal Card -->
+<section class="bg-surface-container-lowest rounded-xl p-lg shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
+<div class="flex justify-between items-start mb-sm">
+<p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">Balance Mensual</p>
+<span class="material-symbols-outlined text-primary" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<h2 class="font-h1 text-h1 text-on-surface mb-base">$3,420.00</h2>
+<div class="flex items-center gap-xs text-secondary">
+<span class="material-symbols-outlined text-[16px]" data-icon="trending_up">trending_up</span>
+<p class="font-body-md">+12% respecto al mes anterior</p>
+</div>
+</section>
+<!-- Bento Grid: Donut Chart & New Action -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Donut Chart Card -->
+<section class="bg-surface-container-lowest rounded-xl p-lg shadow-[0_4px_16px_rgba(0,0,0,0.12)] flex flex-col items-center">
+<p class="font-h3 text-h3 text-on-surface w-full mb-lg text-left">Distribución</p>
+<div class="relative w-40 h-40 flex items-center justify-center mb-lg">
+<div class="donut-chart w-full h-full"></div>
+<div class="absolute w-28 h-28 bg-surface-container-lowest rounded-full flex flex-center items-center justify-center">
+<div class="text-center">
+<p class="font-label-caps text-label-caps text-on-surface-variant">Gastos</p>
+<p class="font-h3 text-h3 text-on-surface">$1,280</p>
+</div>
+</div>
+</div>
+<div class="w-full grid grid-cols-2 gap-sm">
+<div class="flex items-center gap-sm">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span class="font-body-md text-on-surface-variant">Comida</span>
+</div>
+<div class="flex items-center gap-sm">
+<span class="w-3 h-3 rounded-full bg-secondary"></span>
+<span class="font-body-md text-on-surface-variant">Transporte</span>
+</div>
+<div class="flex items-center gap-sm">
+<span class="w-3 h-3 rounded-full bg-tertiary-container"></span>
+<span class="font-body-md text-on-surface-variant">Ocio</span>
+</div>
+<div class="flex items-center gap-sm">
+<span class="w-3 h-3 rounded-full bg-surface-container-highest"></span>
+<span class="font-body-md text-on-surface-variant">Otros</span>
+</div>
+</div>
+</section>
+<!-- Quick Action: Nuevo Gasto -->
+<section class="flex flex-col gap-gutter">
+<button class="bg-primary text-on-primary w-full py-xl rounded-xl shadow-lg hover:opacity-90 active:scale-95 transition-all flex flex-col items-center justify-center gap-md">
+<div class="bg-on-primary-container p-md rounded-full">
+<span class="material-symbols-outlined text-[32px] text-primary" data-icon="add">add</span>
+</div>
+<span class="font-h3 text-h3">Nuevo Gasto</span>
+</button>
+<div class="bg-secondary-container text-on-secondary-container p-lg rounded-xl flex items-center justify-between">
+<div>
+<p class="font-label-caps text-label-caps">Ahorro Mensual</p>
+<p class="font-h3 text-h3">$850.00</p>
+</div>
+<span class="material-symbols-outlined text-[32px]" data-icon="savings">savings</span>
+</div>
+</section>
+</div>
+<!-- Recientes List -->
+<section class="space-y-md">
+<div class="flex justify-between items-center px-base">
+<h3 class="font-h3 text-h3 text-on-surface">Gastos Recientes</h3>
+<button class="text-primary font-button text-button">Ver todo</button>
+</div>
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
+<!-- Item 1 -->
+<div class="flex items-center justify-between p-md hover:bg-surface-container-low transition-colors active:scale-[0.98] transition-transform">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="restaurant">restaurant</span>
+</div>
+<div>
+<p class="font-body-lg text-on-surface font-semibold">Almuerzo Ejecutivo</p>
+<p class="font-body-md text-on-surface-variant text-sm">Hace 2 horas • Comida</p>
+</div>
+</div>
+<p class="font-h3 text-h3 text-error">-$12.50</p>
+</div>
+<div class="h-[1px] w-full bg-on-surface opacity-10 mx-md"></div>
+<!-- Item 2 -->
+<div class="flex items-center justify-between p-md hover:bg-surface-container-low transition-colors active:scale-[0.98] transition-transform">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="directions_car">directions_car</span>
+</div>
+<div>
+<p class="font-body-lg text-on-surface font-semibold">Suscripción Uber</p>
+<p class="font-body-md text-on-surface-variant text-sm">Ayer • Transporte</p>
+</div>
+</div>
+<p class="font-h3 text-h3 text-error">-$9.99</p>
+</div>
+<div class="h-[1px] w-full bg-on-surface opacity-10 mx-md"></div>
+<!-- Item 3 -->
+<div class="flex items-center justify-between p-md hover:bg-surface-container-low transition-colors active:scale-[0.98] transition-transform">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-secondary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" data-icon="payments">payments</span>
+</div>
+<div>
+<p class="font-body-lg text-on-surface font-semibold">Transferencia recibida</p>
+<p class="font-body-md text-on-surface-variant text-sm">Lunes • Ingreso</p>
+</div>
+</div>
+<p class="font-h3 text-h3 text-secondary">+$250.00</p>
+</div>
+<div class="h-[1px] w-full bg-on-surface opacity-10 mx-md"></div>
+<!-- Item 4 -->
+<div class="flex items-center justify-between p-md hover:bg-surface-container-low transition-colors active:scale-[0.98] transition-transform">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="shopping_bag">shopping_bag</span>
+</div>
+<div>
+<p class="font-body-lg text-on-surface font-semibold">Tienda de Ropa</p>
+<p class="font-body-md text-on-surface-variant text-sm">Lunes • Ocio</p>
+</div>
+</div>
+<p class="font-h3 text-h3 text-error">-$45.00</p>
+</div>
+</div>
+</section>
+<!-- Insights Banner -->
+<section class="bg-primary-container p-lg rounded-xl flex items-start gap-md">
+<span class="material-symbols-outlined text-on-primary-container" data-icon="lightbulb">lightbulb</span>
+<div>
+<h4 class="font-body-lg text-on-primary-container font-bold">Consejo de ahorro</h4>
+<p class="font-body-md text-on-primary-container/80">Has gastado un 15% menos en Comida este mes. ¡Sigue así para alcanzar tu meta!</p>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-sm pb-lg pt-md bg-surface-container-lowest dark:bg-inverse-surface shadow-[0_-4px_16px_rgba(0,0,0,0.12)] z-50 rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-container-low transition-colors active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-container-low transition-colors active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+<span class="font-label-caps text-label-caps">Tasks</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-container-low transition-colors active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="font-label-caps text-label-caps">Calendar</span>
+</a>
+<!-- ACTIVE TAB: Expenses (Closest to original semantic meaning) -->
+<a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-full px-4 py-1 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="payments" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span class="font-label-caps text-label-caps">Expenses</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-container-low transition-colors active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-caps text-label-caps">Profile</span>
+</a>
+</nav>
+</body></html>

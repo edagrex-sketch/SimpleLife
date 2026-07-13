@@ -9,7 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import EventCard from '../components/EventCard';
 import { COLORS } from '../utils/colors';
 import { useCalendar } from '../context/CalendarContext';

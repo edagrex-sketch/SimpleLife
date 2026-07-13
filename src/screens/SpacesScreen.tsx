@@ -10,7 +10,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import SpaceCard from '../components/SpaceCard';
 import { COLORS, SHADOWS } from '../utils/colors';
 import { useSpaces } from '../context/SpacesContext';

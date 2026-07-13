@@ -9,7 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import ExpenseCard from '../components/ExpenseCard';
 import { COLORS, SHADOWS, EXPENSE_CATEGORIES } from '../utils/colors';
 import { useExpenses } from '../context/ExpensesContext';

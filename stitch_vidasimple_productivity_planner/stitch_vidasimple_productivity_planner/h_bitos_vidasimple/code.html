@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>VidaSimple - Mis Hábitos</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#e1e2ed",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "primary": "#004ac6",
+                        "on-primary-container": "#eeefff",
+                        "on-background": "#191b23",
+                        "on-primary": "#ffffff",
+                        "on-secondary-container": "#006f64",
+                        "tertiary": "#943700",
+                        "surface-container-high": "#e7e7f3",
+                        "surface-container-low": "#f3f3fe",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed": "#360f00",
+                        "surface-bright": "#faf8ff",
+                        "inverse-on-surface": "#f0f0fb",
+                        "tertiary-fixed": "#ffdbcd",
+                        "primary-fixed": "#dbe1ff",
+                        "on-tertiary-container": "#ffede6",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-primary": "#b4c5ff",
+                        "surface-dim": "#d9d9e5",
+                        "secondary-fixed": "#71f8e4",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed": "#00201c",
+                        "secondary-container": "#6df5e1",
+                        "error-container": "#ffdad6",
+                        "primary-container": "#2563eb",
+                        "on-primary-fixed": "#00174b",
+                        "surface-variant": "#e1e2ed",
+                        "on-surface": "#191b23",
+                        "background": "#faf8ff",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "error": "#ba1a1a",
+                        "on-surface-variant": "#434655",
+                        "on-error-container": "#93000a",
+                        "inverse-surface": "#2e3039",
+                        "on-secondary-fixed-variant": "#005048",
+                        "secondary": "#006b5f",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "surface-container": "#ededf9",
+                        "surface-tint": "#0053db",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "outline": "#737686",
+                        "surface": "#faf8ff",
+                        "tertiary-container": "#bc4800",
+                        "secondary-fixed-dim": "#4fdbc8",
+                        "outline-variant": "#c3c6d7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xxl": "48px",
+                        "sm": "8px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "safe_margin": "20px",
+                        "gutter": "16px",
+                        "base": "4px",
+                        "md": "16px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "h1": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "h3": ["Inter"],
+                        "h2": ["Inter"],
+                        "body-md": ["Inter"],
+                        "button": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "h1": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "h3": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "h2": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "button": ["14px", {"lineHeight": "20px", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #faf8ff;
+            font-family: 'Inter', sans-serif;
+        }
+        .ambient-card {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            border-radius: 16px;
+            background-color: #ffffff;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-background">
+<!-- TopAppBar -->
+<header class="bg-background dark:bg-background w-full top-0 sticky z-50 flex justify-between items-center px-safe_margin py-md">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary-container overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a young woman with a friendly expression, set against a soft-focus urban background. The lighting is natural and bright, reflecting a modern and clean aesthetic consistent with high-end lifestyle photography. Her style is professional yet approachable, fitting the Corporate Modern design system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCby4Q89vw3hILxDTO7cl73sYfDYpXjBgbG8gL4Hk1Yh0vEuhTfdJe-FS0Ta3vS6NV-8-dfCAon9fJaUD0SB-CC2cb1R2F6bb_JO--MbWJpWDYvMrZPVdArPf9XudV2gOqM7JTWoNawcRMa6TjjMVB9CfD0qmM-HNZ8qG8tAXxmA3fZDM4OLEHKSYo-Y6JpKjMNp6e_-ovup35tEgVzZu4FOMYiekeR1cYimis90aZ5nss8OmRWCL4R9Ttx7IORoQqn7A-40qSp0Eo"/>
+</div>
+<h1 class="font-h2 text-h2 font-bold text-primary dark:text-inverse-primary">VidaSimple</h1>
+</div>
+<button class="text-primary dark:text-inverse-primary hover:opacity-80 transition-opacity active:scale-95 transition-transform">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</header>
+<main class="px-safe_margin pb-xxl pt-md">
+<!-- Daily Motivation Hero -->
+<section class="mb-xl">
+<div class="ambient-card p-lg bg-gradient-to-br from-primary-container to-primary text-on-primary-container">
+<div class="flex flex-col gap-xs">
+<span class="font-label-caps text-label-caps opacity-80 uppercase">Progreso de Hoy</span>
+<h2 class="font-h1 text-h1">75% Completado</h2>
+<p class="font-body-md text-body-md mt-sm opacity-90">¡Sigue así, Javier! Solo te faltan 2 hábitos para un día perfecto.</p>
+</div>
+<div class="mt-lg w-full bg-white/20 rounded-full h-3">
+<div class="bg-secondary-container h-3 rounded-full" style="width: 75%;"></div>
+</div>
+</div>
+</section>
+<!-- Habit Categories/Filter -->
+<div class="flex gap-sm overflow-x-auto pb-md mb-md scrollbar-hide">
+<span class="bg-primary text-on-primary px-lg py-sm rounded-full font-button text-button whitespace-nowrap">Todos</span>
+<span class="bg-surface-container-high text-on-surface-variant px-lg py-sm rounded-full font-button text-button whitespace-nowrap">Salud</span>
+<span class="bg-surface-container-high text-on-surface-variant px-lg py-sm rounded-full font-button text-button whitespace-nowrap">Mente</span>
+<span class="bg-surface-container-high text-on-surface-variant px-lg py-sm rounded-full font-button text-button whitespace-nowrap">Productividad</span>
+</div>
+<!-- Habits List -->
+<div class="space-y-md">
+<!-- Habit Item 1: Water -->
+<div class="ambient-card p-md flex flex-col gap-md">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-xl bg-primary-fixed-dim flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">water_drop</span>
+</div>
+<div>
+<h3 class="font-h3 text-h3 text-on-background">Beber agua</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Objetivo: 2L diarios</p>
+</div>
+</div>
+<div class="flex items-center gap-xs bg-secondary-fixed-dim/20 text-secondary px-sm py-1 rounded-full">
+<span class="material-symbols-outlined text-[18px]">local_fire_department</span>
+<span class="font-label-caps text-label-caps">12 d</span>
+</div>
+</div>
+<div class="flex flex-col gap-sm">
+<div class="flex justify-between text-on-surface-variant font-label-caps text-label-caps">
+<span>1.5L / 2L</span>
+<span>75%</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2">
+<div class="bg-primary h-2 rounded-full" style="width: 75%;"></div>
+</div>
+</div>
+<button class="w-full py-md rounded-xl bg-primary-container text-on-primary-container font-button text-button hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined">add_circle</span>
+                    Registrar 250ml
+                </button>
+</div>
+<!-- Habit Item 2: Meditate -->
+<div class="ambient-card p-md flex flex-col gap-md">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-xl bg-secondary-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">self_improvement</span>
+</div>
+<div>
+<h3 class="font-h3 text-h3 text-on-background">Meditar</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Objetivo: 10 min</p>
+</div>
+</div>
+<div class="flex items-center gap-xs bg-secondary-fixed-dim/20 text-secondary px-sm py-1 rounded-full">
+<span class="material-symbols-outlined text-[18px]">local_fire_department</span>
+<span class="font-label-caps text-label-caps">5 d</span>
+</div>
+</div>
+<div class="flex flex-col gap-sm">
+<div class="flex justify-between text-on-surface-variant font-label-caps text-label-caps">
+<span>Completado</span>
+<span>100%</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2">
+<div class="bg-secondary h-2 rounded-full" style="width: 100%;"></div>
+</div>
+</div>
+<button class="w-full py-md rounded-xl bg-secondary-container/30 text-secondary font-button text-button opacity-50 cursor-default flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined">check_circle</span>
+                    Hábito completado
+                </button>
+</div>
+<!-- Habit Item 3: Exercise -->
+<div class="ambient-card p-md flex flex-col gap-md">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-xl bg-tertiary-fixed flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">fitness_center</span>
+</div>
+<div>
+<h3 class="font-h3 text-h3 text-on-background">Ejercicio diario</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Objetivo: 30 min</p>
+</div>
+</div>
+<div class="flex items-center gap-xs bg-surface-container-high text-on-surface-variant px-sm py-1 rounded-full">
+<span class="material-symbols-outlined text-[18px]">event_busy</span>
+<span class="font-label-caps text-label-caps">0 d</span>
+</div>
+</div>
+<div class="flex flex-col gap-sm">
+<div class="flex justify-between text-on-surface-variant font-label-caps text-label-caps">
+<span>Pendiente</span>
+<span>0%</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2">
+<div class="bg-tertiary h-2 rounded-full" style="width: 0%;"></div>
+</div>
+</div>
+<button class="w-full py-md rounded-xl bg-primary text-on-primary font-button text-button hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined">done</span>
+                    Marcar como hecho
+                </button>
+</div>
+</div>
+<!-- Weekly Summary Bento -->
+<section class="mt-xl">
+<h2 class="font-h2 text-h2 mb-md">Tu semana de un vistazo</h2>
+<div class="grid grid-cols-2 gap-md">
+<div class="ambient-card p-md flex flex-col justify-between h-40">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary">analytics</span>
+<span class="font-label-caps text-label-caps text-primary bg-primary/10 px-2 py-0.5 rounded">+12%</span>
+</div>
+<div>
+<p class="font-h1 text-h1">84%</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Consistencia</p>
+</div>
+</div>
+<div class="ambient-card p-md flex flex-col justify-between h-40 bg-secondary/5">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-secondary">workspace_premium</span>
+</div>
+<div>
+<p class="font-h1 text-h1">6</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Logros nuevos</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- FAB for adding habits (only on relevant screens) -->
+<button class="fixed bottom-24 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center active:scale-90 transition-transform z-40">
+<span class="material-symbols-outlined" style="font-size: 32px;">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-sm pb-lg pt-md bg-surface-container-lowest dark:bg-inverse-surface shadow-[0_-4px_16px_rgba(0,0,0,0.12)] z-50 rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-container-low dark:hover:bg-surface-variant transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-full px-4 py-1 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-label-caps text-label-caps">Tasks</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-container-low dark:hover:bg-surface-variant transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-caps text-label-caps">Calendar</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-container-low dark:hover:bg-surface-variant transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-caps text-label-caps">Expenses</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-container-low dark:hover:bg-surface-variant transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-caps text-label-caps">Profile</span>
+</a>
+</nav>
+</body></html>

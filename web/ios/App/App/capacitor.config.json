@@ -1,0 +1,14 @@
+{
+	"appId": "com.vidasimple.app",
+	"appName": "VidaSimple",
+	"webDir": "dist",
+	"server": {
+		"androidScheme": "https",
+		"iosScheme": "https"
+	},
+	"ios": {
+		"contentInset": "always",
+		"preferredContentMode": "mobile"
+	},
+	"packageClassList": []
+}

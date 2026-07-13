@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-highest": "#e1e2ed",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "primary": "#004ac6",
+                    "on-primary-container": "#eeefff",
+                    "on-background": "#191b23",
+                    "on-primary": "#ffffff",
+                    "on-secondary-container": "#006f64",
+                    "tertiary": "#943700",
+                    "surface-container-high": "#e7e7f3",
+                    "surface-container-low": "#f3f3fe",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-fixed": "#360f00",
+                    "surface-bright": "#faf8ff",
+                    "inverse-on-surface": "#f0f0fb",
+                    "tertiary-fixed": "#ffdbcd",
+                    "primary-fixed": "#dbe1ff",
+                    "on-tertiary-container": "#ffede6",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-primary": "#b4c5ff",
+                    "surface-dim": "#d9d9e5",
+                    "secondary-fixed": "#71f8e4",
+                    "on-error": "#ffffff",
+                    "on-secondary-fixed": "#00201c",
+                    "secondary-container": "#6df5e1",
+                    "error-container": "#ffdad6",
+                    "primary-container": "#2563eb",
+                    "on-primary-fixed": "#00174b",
+                    "surface-variant": "#e1e2ed",
+                    "on-surface": "#191b23",
+                    "background": "#faf8ff",
+                    "on-tertiary-fixed-variant": "#7d2d00",
+                    "error": "#ba1a1a",
+                    "on-surface-variant": "#434655",
+                    "on-error-container": "#93000a",
+                    "inverse-surface": "#2e3039",
+                    "on-secondary-fixed-variant": "#005048",
+                    "secondary": "#006b5f",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-fixed-dim": "#ffb596",
+                    "surface-container": "#ededf9",
+                    "surface-tint": "#0053db",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "outline": "#737686",
+                    "surface": "#faf8ff",
+                    "tertiary-container": "#bc4800",
+                    "secondary-fixed-dim": "#4fdbc8",
+                    "outline-variant": "#c3c6d7"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xxl": "48px",
+                    "sm": "8px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "safe_margin": "20px",
+                    "gutter": "16px",
+                    "base": "4px",
+                    "md": "16px",
+                    "xs": "4px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Inter"],
+                    "h1": ["Inter"],
+                    "label-caps": ["Inter"],
+                    "h3": ["Inter"],
+                    "h2": ["Inter"],
+                    "body-md": ["Inter"],
+                    "button": ["Inter"]
+            },
+            "fontSize": {
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "h1": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "h3": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "h2": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "button": ["14px", {"lineHeight": "20px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .task-checkbox:checked + .checkbox-custom .check-icon {
+            display: block;
+        }
+        .custom-shadow {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-xxl">
+<!-- Top AppBar (from JSON guidance) -->
+<header class="bg-background dark:bg-background w-full top-0 flex justify-between items-center px-safe_margin py-md z-40 sticky">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center overflow-hidden">
+<img alt="User Profile" class="w-full h-auto" data-alt="A professional headshot of a person with a friendly expression, set against a soft-focus office background. The lighting is bright and natural, reflecting a clean and modern corporate aesthetic. The overall color palette is warm and welcoming, aligning with a high-end productivity app interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1_OWBmgSZX8ao6nzBCeG-caETu1YPaAkHc5DTaKyMhDnDTOP6K9gJ-uWfq0RN05fCH89cM6aTjvJllSTDA0Mvl2Maujlve8_TdTkXXFy7ehyINYKniaroj1W2zsy1CLtxvDPj5wiEbmXn4y59Tr-cyE6sFyQjmMzPpd1Q-otNMnu_phXogJ3j2WfRsjyhBW0FpL4S0Tm0AxAL2JoPEi6ubrYU0e2rL2G07KorKJSLHWfmWb60RyMv-8iSMG6KTQs-2uDuCLqcBBQ"/>
+</div>
+<h1 class="font-h2 text-h2 font-bold text-primary">VidaSimple</h1>
+</div>
+<button class="text-primary hover:opacity-80 transition-opacity active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[28px]" data-icon="settings">settings</span>
+</button>
+</header>
+<main class="px-safe_margin mt-md">
+<!-- Greeting & Summary -->
+<section class="mb-xl">
+<h2 class="font-h1 text-h1 text-on-surface">Mis Tareas</h2>
+<p class="font-body-md text-on-surface-variant mt-xs">Tienes 4 tareas pendientes para hoy.</p>
+</section>
+<!-- Filter Chips -->
+<section class="flex gap-sm overflow-x-auto pb-md no-scrollbar">
+<button class="px-lg py-sm rounded-full bg-primary text-on-primary font-button text-button shadow-md">Todas</button>
+<button class="px-lg py-sm rounded-full bg-surface-container-high text-on-surface-variant font-button text-button hover:bg-surface-container-highest transition-colors">Alta</button>
+<button class="px-lg py-sm rounded-full bg-surface-container-high text-on-surface-variant font-button text-button hover:bg-surface-container-highest transition-colors">Media</button>
+<button class="px-lg py-sm rounded-full bg-surface-container-high text-on-surface-variant font-button text-button hover:bg-surface-container-highest transition-colors">Baja</button>
+</section>
+<!-- Active Tasks List -->
+<section class="space-y-md mt-md">
+<!-- Task Item: Priority High -->
+<div class="bg-surface-container-lowest p-lg rounded-xl custom-shadow flex items-center gap-md group">
+<div class="relative flex items-center justify-center">
+<input class="task-checkbox appearance-none w-6 h-6 border-2 border-error rounded-full checked:bg-error cursor-pointer transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white pointer-events-none hidden check-icon text-[16px]" style="font-variation-settings: 'FILL' 0, 'wght' 700;">check</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-tertiary-fixed-variant bg-tertiary-fixed px-sm py-1 rounded-full">Prioridad Alta</span>
+<span class="font-label-caps text-label-caps text-outline">09:00 AM</span>
+</div>
+<h3 class="font-body-lg text-body-lg text-on-surface mt-1">Revisión de presupuesto Q3</h3>
+</div>
+</div>
+<!-- Task Item: Priority Medium -->
+<div class="bg-surface-container-lowest p-lg rounded-xl custom-shadow flex items-center gap-md group">
+<div class="relative flex items-center justify-center">
+<input class="task-checkbox appearance-none w-6 h-6 border-2 border-primary rounded-full checked:bg-primary cursor-pointer transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white pointer-events-none hidden check-icon text-[16px]" style="font-variation-settings: 'FILL' 0, 'wght' 700;">check</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-primary-fixed-variant bg-primary-fixed px-sm py-1 rounded-full">Prioridad Media</span>
+<span class="font-label-caps text-label-caps text-outline">11:30 AM</span>
+</div>
+<h3 class="font-body-lg text-body-lg text-on-surface mt-1">Diseño de interfaz de usuario</h3>
+</div>
+</div>
+<!-- Task Item: Priority Low -->
+<div class="bg-surface-container-lowest p-lg rounded-xl custom-shadow flex items-center gap-md group">
+<div class="relative flex items-center justify-center">
+<input class="task-checkbox appearance-none w-6 h-6 border-2 border-secondary rounded-full checked:bg-secondary cursor-pointer transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white pointer-events-none hidden check-icon text-[16px]" style="font-variation-settings: 'FILL' 0, 'wght' 700;">check</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-secondary-fixed-variant bg-secondary-fixed px-sm py-1 rounded-full">Prioridad Baja</span>
+<span class="font-label-caps text-label-caps text-outline">02:00 PM</span>
+</div>
+<h3 class="font-body-lg text-body-lg text-on-surface mt-1">Comprar insumos de oficina</h3>
+</div>
+</div>
+<!-- Task Item: No priority/Standard -->
+<div class="bg-surface-container-lowest p-lg rounded-xl custom-shadow flex items-center gap-md group">
+<div class="relative flex items-center justify-center">
+<input class="task-checkbox appearance-none w-6 h-6 border-2 border-outline-variant rounded-full checked:bg-outline cursor-pointer transition-all" type="checkbox"/>
+<span class="material-symbols-outlined absolute text-white pointer-events-none hidden check-icon text-[16px]" style="font-variation-settings: 'FILL' 0, 'wght' 700;">check</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant bg-surface-container px-sm py-1 rounded-full">Personal</span>
+<span class="font-label-caps text-label-caps text-outline">05:00 PM</span>
+</div>
+<h3 class="font-body-lg text-body-lg text-on-surface mt-1">Llamar a soporte técnico</h3>
+</div>
+</div>
+</section>
+<!-- Completed Tasks (Collapsible-style Section) -->
+<section class="mt-xl mb-xxl">
+<div class="flex items-center justify-between py-md border-t border-outline-variant/10">
+<h3 class="font-h3 text-h3 text-on-surface-variant flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline" data-icon="expand_more">expand_more</span>
+                    Tareas Completadas (12)
+                </h3>
+</div>
+<div class="space-y-md opacity-60">
+<div class="flex items-center gap-md py-sm px-md">
+<div class="w-6 h-6 rounded-full bg-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[14px]" style="font-variation-settings: 'FILL' 0, 'wght' 700;">check</span>
+</div>
+<p class="font-body-md text-body-md line-through text-on-surface-variant">Actualizar política de privacidad</p>
+</div>
+<div class="flex items-center gap-md py-sm px-md">
+<div class="w-6 h-6 rounded-full bg-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[14px]" style="font-variation-settings: 'FILL' 0, 'wght' 700;">check</span>
+</div>
+<p class="font-body-md text-body-md line-through text-on-surface-variant">Reunión equipo de marketing</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed bottom-24 right-6 w-14 h-14 bg-primary-container text-on-primary-container rounded-2xl flex items-center justify-center shadow-lg active:scale-95 transition-transform z-50">
+<span class="material-symbols-outlined text-[32px]" data-icon="add">add</span>
+</button>
+<!-- Bottom Navigation (from JSON guidance) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-sm pb-lg pt-md bg-surface-container-lowest dark:bg-inverse-surface shadow-[0_-4px_16px_rgba(0,0,0,0.12)] z-50 rounded-t-xl">
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-container-low transition-colors active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined text-[24px]" data-icon="home">home</span>
+<span class="font-label-caps text-label-caps mt-1">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-full px-4 py-1 active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined text-[24px]" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-label-caps text-label-caps mt-1">Tasks</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-container-low transition-colors active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined text-[24px]" data-icon="calendar_today">calendar_today</span>
+<span class="font-label-caps text-label-caps mt-1">Calendar</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-container-low transition-colors active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined text-[24px]" data-icon="payments">payments</span>
+<span class="font-label-caps text-label-caps mt-1">Expenses</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-container-low transition-colors active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined text-[24px]" data-icon="person">person</span>
+<span class="font-label-caps text-label-caps mt-1">Profile</span>
+</div>
+</nav>
+</body></html>
