@@ -157,6 +157,9 @@ jobs:
 
             # Install pods if Podfile exists (always run to ensure sync with Podfile.lock)
            if [ -f "Podfile" ]; then
+             # Remove RNVectorIcons resource copy from podspec to avoid duplicate fonts
+             # (fonts are already linked via react-native-asset in project.pbxproj)
+             sed -i '' 's/s\.resources.*=.*"Fonts\/\*\.ttf"//' ../node_modules/react-native-vector-icons/RNVectorIcons.podspec 2>/dev/null || true
              echo "Running pod install (with repo update)..."
              set +e
              pod install 2>&1
