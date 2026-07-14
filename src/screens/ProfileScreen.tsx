@@ -7,13 +7,19 @@ import { COLORS, SHADOWS } from '../utils/colors';
 import { useAuth } from '../context/AuthContext';
 import { useTasks } from '../context/TaskContext';
 import { useExpenses } from '../context/ExpensesContext';
+import { useNotifications } from '../context/NotificationsContext';
 import { useFadeIn } from '../hooks/useFadeIn';
 import { useStagger } from '../hooks/useStagger';
 
-export default function ProfileScreen() {
+interface ProfileScreenProps {
+  onOpenNotifications?: () => void;
+}
+
+export default function ProfileScreen({ onOpenNotifications }: ProfileScreenProps) {
   const { profile, signOut } = useAuth();
   const { tasks } = useTasks();
   const { expenses } = useExpenses();
+  const { unreadCount } = useNotifications();
 
   const completedTasks = tasks.filter((t) => t.is_done).length;
 
@@ -49,8 +55,9 @@ export default function ProfileScreen() {
           <Ionicons name="menu" size={24} color={COLORS.textPrimary} />
         </Pressable>
         <Text style={styles.headerTitle}>Lifestyle</Text>
-        <Pressable style={styles.bellButton}>
+        <Pressable style={styles.bellButton} onPress={onOpenNotifications}>
           <Ionicons name="notifications-outline" size={22} color={COLORS.textPrimary} />
+          {unreadCount > 0 && <View style={styles.badge} />}
         </Pressable>
       </Animated.View>
 
@@ -161,6 +168,17 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  badge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.error,
+    borderWidth: 2,
+    borderColor: COLORS.surface,
   },
   scroll: {
     paddingHorizontal: 20,

@@ -76,3 +76,14 @@ export interface User {
   id: string;
   email?: string;
 }
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  type: 'task_assigned' | 'space_invite' | 'event_reminder' | 'general';
+  read: boolean;
+  link_to?: string;
+  created_at?: string;
+}

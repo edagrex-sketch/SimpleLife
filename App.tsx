@@ -14,6 +14,7 @@ import { ExpensesProvider } from './src/context/ExpensesContext';
 import { CalendarProvider } from './src/context/CalendarContext';
 import { SpacesProvider } from './src/context/SpacesContext';
 import { ProfileProvider } from './src/context/ProfileContext';
+import { NotificationsProvider } from './src/context/NotificationsContext';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import HomeScreen from './src/screens/HomeScreen';
@@ -23,6 +24,7 @@ import ExpensesScreen from './src/screens/ExpensesScreen';
 import SpacesScreen from './src/screens/SpacesScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import AICoachSheet from './src/components/AICoachSheet';
+import NotificationsSheet from './src/components/NotificationsSheet';
 import FloatingTabBar, { TabId } from './src/components/FloatingTabBar';
 import { COLORS, SHADOWS } from './src/utils/colors';
 
@@ -60,6 +62,7 @@ function MainApp() {
   const { user, loading } = useAuth();
   const [currentTab, setCurrentTab] = useState<TabId>('home');
   const [showAI, setShowAI] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   if (loading) {
     return (
@@ -79,12 +82,38 @@ function MainApp() {
 
   const renderScreen = () => {
     switch (currentTab) {
-      case 'home': return <HomeScreen />;
-      case 'tasks': return <TasksScreen />;
-      case 'calendar': return <CalendarScreen />;
-      case 'expenses': return <ExpensesScreen />;
-      case 'spaces': return <SpacesScreen />;
-      default: return <HomeScreen />;
+      case 'home':
+        return (
+          <HomeScreen
+            onNavigate={setCurrentTab}
+            onOpenNotifications={() => setShowNotifications(true)}
+          />
+        );
+      case 'tasks':
+        return (
+          <TasksScreen
+            onOpenNotifications={() => setShowNotifications(true)}
+          />
+        );
+      case 'calendar':
+        return <CalendarScreen />;
+      case 'expenses':
+        return (
+          <ExpensesScreen
+            onOpenNotifications={() => setShowNotifications(true)}
+          />
+        );
+      case 'spaces':
+        return (
+          <SpacesScreen />
+        );
+      default:
+        return (
+          <HomeScreen
+            onNavigate={setCurrentTab}
+            onOpenNotifications={() => setShowNotifications(true)}
+          />
+        );
     }
   };
 
@@ -100,6 +129,10 @@ function MainApp() {
         onFabPress={() => setShowAI(true)}
       />
       <AICoachSheet visible={showAI} onClose={() => setShowAI(false)} />
+      <NotificationsSheet
+        visible={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
     </View>
   );
 }
@@ -114,7 +147,9 @@ function App() {
               <CalendarProvider>
                 <SpacesProvider>
                   <ProfileProvider>
-                    <MainApp />
+                    <NotificationsProvider>
+                      <MainApp />
+                    </NotificationsProvider>
                   </ProfileProvider>
                 </SpacesProvider>
               </CalendarProvider>

@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { COLORS, SHADOWS, PRIORITY_COLORS, PRIORITY_LABELS } from '../utils/colors';
 import { useTasks } from '../context/TaskContext';
+import { useNotifications } from '../context/NotificationsContext';
 import { TaskPriority } from '../types';
 import { today } from '../utils/helpers';
 import { useFadeIn } from '../hooks/useFadeIn';
@@ -71,8 +72,13 @@ function TaskCard({
   );
 }
 
-export default function TasksScreen() {
+interface TasksScreenProps {
+  onOpenNotifications?: () => void;
+}
+
+export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
   const { tasks, addTask, toggleTask } = useTasks();
+  const { unreadCount } = useNotifications();
   const [filter, setFilter] = useState('Todas');
   const [showModal, setShowModal] = useState(false);
   const [title, setTitle] = useState('');
@@ -121,8 +127,9 @@ export default function TasksScreen() {
           <Ionicons name="menu" size={24} color={COLORS.textPrimary} />
         </Pressable>
         <Text style={styles.headerTitle}>Lifestyle</Text>
-        <Pressable style={styles.bellButton}>
+        <Pressable style={styles.bellButton} onPress={onOpenNotifications}>
           <Ionicons name="notifications-outline" size={22} color={COLORS.textPrimary} />
+          {unreadCount > 0 && <View style={styles.badge} />}
         </Pressable>
       </Animated.View>
 
@@ -290,6 +297,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...SHADOWS.small,
+  },
+  badge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.error,
+    borderWidth: 2,
+    borderColor: COLORS.surface,
   },
   titleRow: {
     flexDirection: 'row',

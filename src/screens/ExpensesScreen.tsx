@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { COLORS, EXPENSE_CATEGORIES, CATEGORY_COLORS, SHADOWS } from '../utils/colors';
 import { useExpenses } from '../context/ExpensesContext';
+import { useNotifications } from '../context/NotificationsContext';
 import { today, formatAmount } from '../utils/helpers';
 import { useFadeIn } from '../hooks/useFadeIn';
 import { useStagger } from '../hooks/useStagger';
@@ -66,8 +67,13 @@ function ExpenseRow({ expense, index, formatExpenseDate }: ExpenseRowProps) {
   );
 }
 
-export default function ExpensesScreen() {
+interface ExpensesScreenProps {
+  onOpenNotifications?: () => void;
+}
+
+export default function ExpensesScreen({ onOpenNotifications }: ExpensesScreenProps) {
   const { expenses, addExpense, deleteExpense } = useExpenses();
+  const { unreadCount } = useNotifications();
   const [showModal, setShowModal] = useState(false);
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
@@ -121,8 +127,9 @@ export default function ExpensesScreen() {
         <View>
           <Text style={styles.headerAppName}>VidaSimple</Text>
         </View>
-        <Pressable style={styles.bellButton}>
+        <Pressable style={styles.bellButton} onPress={onOpenNotifications}>
           <Ionicons name="notifications-outline" size={22} color={COLORS.textPrimary} />
+          {unreadCount > 0 && <View style={styles.badge} />}
         </Pressable>
       </Animated.View>
 
@@ -313,6 +320,17 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  badge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.error,
+    borderWidth: 2,
+    borderColor: COLORS.surface,
   },
   title: {
     fontSize: 24,
