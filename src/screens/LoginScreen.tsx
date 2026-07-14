@@ -12,7 +12,7 @@ import {
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { COLORS } from '../utils/colors';
+import { COLORS, SHADOWS } from '../utils/colors';
 import { useAuth } from '../context/AuthContext';
 import { useFadeIn } from '../hooks/useFadeIn';
 
@@ -50,7 +50,7 @@ export default function LoginScreen({ onSwitchToRegister }: Props) {
         {/* Logo */}
         <Animated.View style={[styles.logoContainer, logoAnim.animatedStyle]}>
           <View style={styles.logoIcon}>
-            <Ionicons name="sunny" size={28} color="#FFFFFF" />
+            <Ionicons name="sunny" size={28} color={COLORS.textInverse} />
           </View>
         </Animated.View>
 
@@ -67,7 +67,7 @@ export default function LoginScreen({ onSwitchToRegister }: Props) {
             <TextInput
               style={styles.input}
               placeholder="nombre@ejemplo.com"
-              placeholderTextColor="#BBBBBB"
+              placeholderTextColor={COLORS.textTertiary}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -77,7 +77,7 @@ export default function LoginScreen({ onSwitchToRegister }: Props) {
 
           <View style={styles.passwordHeader}>
             <Text style={styles.inputLabel}>Contraseña</Text>
-            <Pressable>
+            <Pressable style={styles.forgotPasswordTouchable}>
               <Text style={styles.forgotPassword}>¿Olvidaste tu contraseña?</Text>
             </Pressable>
           </View>
@@ -85,7 +85,7 @@ export default function LoginScreen({ onSwitchToRegister }: Props) {
             <TextInput
               style={styles.input}
               placeholder="••••••••"
-              placeholderTextColor="#BBBBBB"
+              placeholderTextColor={COLORS.textTertiary}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -94,7 +94,7 @@ export default function LoginScreen({ onSwitchToRegister }: Props) {
               <Ionicons
                 name={showPassword ? 'eye-off' : 'eye'}
                 size={20}
-                color="#AAAAAA"
+                color={COLORS.textTertiary}
               />
             </Pressable>
           </View>
@@ -108,7 +108,7 @@ export default function LoginScreen({ onSwitchToRegister }: Props) {
             <Text style={styles.loginButtonText}>
               {loading ? 'Entrando...' : 'Iniciar Sesión'}
             </Text>
-            <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+            <Ionicons name="arrow-forward" size={18} color={COLORS.textInverse} />
           </Pressable>
 
           {/* Divider */}
@@ -121,11 +121,11 @@ export default function LoginScreen({ onSwitchToRegister }: Props) {
           {/* Social Buttons */}
           <Animated.View style={[styles.socialRow, socialAnim.animatedStyle]}>
             <Pressable style={styles.socialButton}>
-              <Ionicons name="logo-google" size={20} color="#333333" />
+              <Ionicons name="logo-google" size={20} color={COLORS.textPrimary} />
               <Text style={styles.socialButtonText}>Google</Text>
             </Pressable>
             <Pressable style={styles.socialButton}>
-              <Ionicons name="logo-apple" size={22} color="#333333" />
+              <Ionicons name="logo-apple" size={22} color={COLORS.textPrimary} />
               <Text style={styles.socialButtonText}>Apple</Text>
             </Pressable>
           </Animated.View>
@@ -148,7 +148,7 @@ export default function LoginScreen({ onSwitchToRegister }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F0EB',
+    backgroundColor: COLORS.background,
   },
   inner: {
     flex: 1,
@@ -163,58 +163,54 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 16,
-    backgroundColor: '#8B5E3C',
+    backgroundColor: COLORS.primaryDark,
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
     fontSize: 30,
     fontWeight: '700',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
     textAlign: 'center',
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 15,
-    color: '#8A7A6A',
+    color: COLORS.textSecondary,
     textAlign: 'center',
     marginTop: 4,
     marginBottom: 32,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderRadius: 20,
     padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 3,
+    ...SHADOWS.medium,
   },
   inputLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#5A4A3A',
+    color: COLORS.textSecondary,
     marginBottom: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F9F6F2',
+    backgroundColor: COLORS.surfaceSecondary,
     borderRadius: 12,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#EDE8E3',
+    borderColor: COLORS.divider,
     marginBottom: 16,
   },
   input: {
     flex: 1,
     paddingVertical: 14,
     fontSize: 15,
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
   },
   eyeButton: {
-    padding: 4,
+    padding: 12,
   },
   passwordHeader: {
     flexDirection: 'row',
@@ -222,26 +218,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
+  forgotPasswordTouchable: {
+    padding: 4,
+  },
   forgotPassword: {
     fontSize: 12,
-    color: '#C56A49',
+    color: COLORS.primary,
     fontWeight: '600',
   },
   loginButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#C56A49',
+    backgroundColor: COLORS.primary,
     borderRadius: 12,
     paddingVertical: 16,
     marginTop: 8,
+    minHeight: 50,
     gap: 8,
   },
   loginButtonDisabled: {
     opacity: 0.6,
   },
   loginButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -253,12 +253,12 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#EDE8E3',
+    backgroundColor: COLORS.divider,
   },
   dividerText: {
     marginHorizontal: 12,
     fontSize: 12,
-    color: '#AAAAAA',
+    color: COLORS.textTertiary,
   },
   socialRow: {
     flexDirection: 'row',
@@ -269,17 +269,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: '#F9F6F2',
+    backgroundColor: COLORS.surfaceSecondary,
     borderWidth: 1,
-    borderColor: '#EDE8E3',
+    borderColor: COLORS.divider,
+    minHeight: 48,
     gap: 8,
   },
   socialButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
   },
   registerLink: {
     alignItems: 'center',
@@ -287,10 +288,10 @@ const styles = StyleSheet.create({
   },
   registerText: {
     fontSize: 14,
-    color: '#8A7A6A',
+    color: COLORS.textSecondary,
   },
   registerBold: {
-    color: '#C56A49',
+    color: COLORS.primary,
     fontWeight: '700',
     textDecorationLine: 'underline',
   },

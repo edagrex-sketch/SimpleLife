@@ -3,11 +3,11 @@ import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { COLORS } from '../utils/colors';
+import { COLORS, SHADOWS, CATEGORY_COLORS } from '../utils/colors';
 import { useAuth } from '../context/AuthContext';
 import { useTasks } from '../context/TaskContext';
 import { useCalendar } from '../context/CalendarContext';
-import { today, getMonthDays, MONTHS, DAYS, formatDate } from '../utils/helpers';
+import { today, getMonthDays, MONTHS, DAYS } from '../utils/helpers';
 import { useFadeIn } from '../hooks/useFadeIn';
 import { useStagger } from '../hooks/useStagger';
 
@@ -35,28 +35,19 @@ export default function HomeScreen() {
     return events.some((e) => e.event_date === dateStr);
   };
 
-  const EVENT_COLORS: Record<string, string> = {
-    Trabajo: '#C56A49',
-    Social: '#91AC9F',
-    Salud: '#DFAD6D',
-    General: '#8A7A6A',
-  };
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
       <Animated.View style={[styles.header, headerAnim.animatedStyle]}>
         <Pressable style={styles.menuButton}>
-          <Ionicons name="menu" size={24} color="#3D2B1F" />
+          <Ionicons name="menu" size={24} color={COLORS.textPrimary} />
         </Pressable>
         <Text style={styles.headerTitle}>Lifestyle</Text>
         <Pressable style={styles.bellButton}>
-          <Ionicons name="notifications-outline" size={22} color="#3D2B1F" />
+          <Ionicons name="notifications-outline" size={22} color={COLORS.textPrimary} />
         </Pressable>
       </Animated.View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        {/* Calendar Section */}
         <Animated.View style={calendarAnim.animatedStyle}>
           <View style={styles.sectionLabel}>
             <Text style={styles.sectionLabelText}>PLANEACIÓN</Text>
@@ -64,29 +55,26 @@ export default function HomeScreen() {
           <Text style={styles.sectionTitle}>Calendario</Text>
 
           <View style={styles.calendarCard}>
-            {/* Month Header */}
             <View style={styles.monthHeader}>
               <Text style={styles.monthTitle}>
                 {MONTHS[month]} {year}
               </Text>
               <View style={styles.monthArrows}>
                 <Pressable style={styles.arrowButton}>
-                  <Ionicons name="chevron-back" size={18} color="#C56A49" />
+                  <Ionicons name="chevron-back" size={18} color={COLORS.primary} />
                 </Pressable>
                 <Pressable style={styles.arrowButton}>
-                  <Ionicons name="chevron-forward" size={18} color="#C56A49" />
+                  <Ionicons name="chevron-forward" size={18} color={COLORS.primary} />
                 </Pressable>
               </View>
             </View>
 
-            {/* Weekday Headers */}
             <View style={styles.weekdays}>
               {DAYS.map((d) => (
                 <Text key={d} style={styles.weekday}>{d}</Text>
               ))}
             </View>
 
-            {/* Calendar Grid */}
             <View style={styles.grid}>
               {days.map((d, i) => (
                 <View key={i} style={styles.dayCell}>
@@ -116,7 +104,6 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
 
-        {/* Events Section */}
         <Animated.View style={eventsAnim.animatedStyle}>
           <View style={styles.eventsHeader}>
             <Text style={styles.eventsSectionTitle}>Eventos de hoy</Text>
@@ -125,35 +112,13 @@ export default function HomeScreen() {
 
           {dayEvents.length === 0 ? (
             <View style={styles.emptyEvents}>
-              <Ionicons name="calendar-outline" size={32} color="#CCC" />
+              <Ionicons name="calendar-outline" size={32} color={COLORS.textTertiary} />
               <Text style={styles.emptyText}>No hay eventos hoy</Text>
             </View>
           ) : (
-            dayEvents.map((event, index) => {
-              const itemAnim = useStagger({ index, staggerDelay: 80, translateY: 16 });
-              return (
-                <Animated.View key={event.id} style={[styles.eventCard, itemAnim.animatedStyle]}>
-                  <View
-                    style={[
-                      styles.eventBorder,
-                      { backgroundColor: EVENT_COLORS[event.category || 'General'] || '#C56A49' },
-                    ]}
-                  />
-                  <View style={styles.eventContent}>
-                    <Text style={styles.eventCategory}>
-                      {(event.category || 'General').toUpperCase()}
-                    </Text>
-                    <Text style={styles.eventTitle}>{event.title}</Text>
-                    {event.start_time && (
-                      <Text style={styles.eventTime}>
-                        {event.start_time}
-                        {event.end_time ? ` - ${event.end_time}` : ''}
-                      </Text>
-                    )}
-                  </View>
-                </Animated.View>
-              );
-            })
+            dayEvents.map((event, index) => (
+              <EventCardWithStagger key={event.id} event={event} index={index} />
+            ))
           )}
         </Animated.View>
 
@@ -163,10 +128,37 @@ export default function HomeScreen() {
   );
 }
 
+function EventCardWithStagger({ event, index }: { event: any; index: number }) {
+  const itemAnim = useStagger({ index, staggerDelay: 80, translateY: 16 });
+
+  return (
+    <Animated.View style={[styles.eventCard, itemAnim.animatedStyle]}>
+      <View
+        style={[
+          styles.eventBorder,
+          { backgroundColor: CATEGORY_COLORS[event.category || 'General'] || COLORS.primary },
+        ]}
+      />
+      <View style={styles.eventContent}>
+        <Text style={styles.eventCategory}>
+          {(event.category || 'General').toUpperCase()}
+        </Text>
+        <Text style={styles.eventTitle}>{event.title}</Text>
+        {event.start_time && (
+          <Text style={styles.eventTime}>
+            {event.start_time}
+            {event.end_time ? ` - ${event.end_time}` : ''}
+          </Text>
+        )}
+      </View>
+    </Animated.View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F0EB',
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
@@ -176,25 +168,27 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   menuButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
+    ...SHADOWS.small,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
   },
   bellButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
+    ...SHADOWS.small,
   },
   scroll: {
     paddingHorizontal: 20,
@@ -205,25 +199,21 @@ const styles = StyleSheet.create({
   sectionLabelText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#AA9A8A',
+    color: COLORS.textTertiary,
     letterSpacing: 1.5,
   },
   sectionTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
     marginBottom: 16,
   },
   calendarCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    ...SHADOWS.small,
   },
   monthHeader: {
     flexDirection: 'row',
@@ -234,17 +224,17 @@ const styles = StyleSheet.create({
   monthTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
   },
   monthArrows: {
     flexDirection: 'row',
     gap: 8,
   },
   arrowButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: '#F9F6F2',
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: COLORS.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -257,7 +247,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 12,
     fontWeight: '600',
-    color: '#AA9A8A',
+    color: COLORS.textTertiary,
   },
   grid: {
     flexDirection: 'row',
@@ -270,33 +260,33 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dayEmpty: {
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
   },
   dayButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   dayButtonActive: {
-    backgroundColor: '#C56A49',
+    backgroundColor: COLORS.primary,
   },
   dayText: {
     fontSize: 14,
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
     fontWeight: '500',
   },
   dayTextActive: {
-    color: '#FFFFFF',
+    color: COLORS.surface,
     fontWeight: '700',
   },
   dayDot: {
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#C56A49',
+    backgroundColor: COLORS.primary,
     marginTop: 1,
   },
   eventsHeader: {
@@ -308,35 +298,32 @@ const styles = StyleSheet.create({
   eventsSectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
   },
   eventsCount: {
     fontSize: 13,
-    color: '#AA9A8A',
+    color: COLORS.textTertiary,
     fontWeight: '500',
   },
   emptyEvents: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 32,
     alignItems: 'center',
     gap: 8,
+    ...SHADOWS.small,
   },
   emptyText: {
     fontSize: 14,
-    color: '#AA9A8A',
+    color: COLORS.textTertiary,
   },
   eventCard: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderRadius: 14,
     marginBottom: 10,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 1,
+    ...SHADOWS.small,
   },
   eventBorder: {
     width: 4,
@@ -348,18 +335,18 @@ const styles = StyleSheet.create({
   eventCategory: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#AA9A8A',
+    color: COLORS.textTertiary,
     letterSpacing: 0.5,
     marginBottom: 4,
   },
   eventTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
     marginBottom: 4,
   },
   eventTime: {
     fontSize: 12,
-    color: '#8A7A6A',
+    color: COLORS.textSecondary,
   },
 });

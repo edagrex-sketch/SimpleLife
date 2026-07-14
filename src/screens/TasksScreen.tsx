@@ -11,7 +11,7 @@ import {
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { COLORS } from '../utils/colors';
+import { COLORS, SHADOWS, PRIORITY_COLORS, PRIORITY_LABELS } from '../utils/colors';
 import { useTasks } from '../context/TaskContext';
 import { TaskPriority } from '../types';
 import { today } from '../utils/helpers';
@@ -20,11 +20,56 @@ import { useStagger } from '../hooks/useStagger';
 
 const FILTERS = ['Todas', 'Hoy', 'Pendientes', 'Completadas'];
 
-const PRIORITY_CONFIG: Record<TaskPriority, { label: string; color: string; bg: string }> = {
-  high: { label: 'ALTA', color: '#C56A49', bg: '#FDEEE8' },
-  medium: { label: 'MEDIA', color: '#DFAD6D', bg: '#FDF5E6' },
-  low: { label: 'BAJA', color: '#91AC9F', bg: '#EEF4F0' },
+const PRIORITY_BG: Record<string, string> = {
+  low: 'rgba(76, 175, 80, 0.10)',
+  medium: 'rgba(223, 173, 109, 0.10)',
+  high: 'rgba(197, 106, 73, 0.10)',
 };
+
+function TaskCard({
+  task,
+  index,
+  onToggle,
+}: {
+  task: any;
+  index: number;
+  onToggle: (id: string) => void;
+}) {
+  const itemAnim = useStagger({ index, staggerDelay: 60, translateY: 16 });
+  const prioColor = PRIORITY_COLORS[task.priority || 'medium'] || COLORS.primary;
+  const prioLabel = PRIORITY_LABELS[task.priority || 'medium'] || 'Media';
+  const prioBg = PRIORITY_BG[task.priority || 'medium'] || PRIORITY_BG.medium;
+
+  return (
+    <Animated.View style={itemAnim.animatedStyle}>
+      <Pressable
+        style={styles.taskCard}
+        onPress={() => onToggle(task.id)}
+      >
+        <View style={[styles.checkbox, task.is_done && styles.checkboxDone]}>
+          {task.is_done && (
+            <Ionicons name="checkmark" size={14} color={COLORS.surface} />
+          )}
+        </View>
+        <View style={styles.taskContent}>
+          <Text style={[styles.taskTitle, task.is_done && styles.taskDone]}>
+            {task.title}
+          </Text>
+          {task.description ? (
+            <Text style={styles.taskDescription} numberOfLines={1}>
+              {task.description}
+            </Text>
+          ) : null}
+        </View>
+        <View style={[styles.priorityBadge, { backgroundColor: prioBg }]}>
+          <Text style={[styles.priorityText, { color: prioColor }]}>
+            {prioLabel.toUpperCase()}
+          </Text>
+        </View>
+      </Pressable>
+    </Animated.View>
+  );
+}
 
 export default function TasksScreen() {
   const { tasks, addTask, toggleTask } = useTasks();
@@ -71,14 +116,13 @@ export default function TasksScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
       <Animated.View style={[styles.header, headerAnim.animatedStyle]}>
         <Pressable style={styles.menuButton}>
-          <Ionicons name="menu" size={24} color="#3D2B1F" />
+          <Ionicons name="menu" size={24} color={COLORS.textPrimary} />
         </Pressable>
         <Text style={styles.headerTitle}>Lifestyle</Text>
         <Pressable style={styles.bellButton}>
-          <Ionicons name="notifications-outline" size={22} color="#3D2B1F" />
+          <Ionicons name="notifications-outline" size={22} color={COLORS.textPrimary} />
         </Pressable>
       </Animated.View>
 
@@ -88,11 +132,10 @@ export default function TasksScreen() {
           <Text style={styles.subtitle}>Organiza tu día con intención</Text>
         </View>
         <Pressable style={styles.sortButton}>
-          <Ionicons name="swap-vertical" size={18} color="#C56A49" />
+          <Ionicons name="swap-vertical" size={18} color={COLORS.primary} />
         </Pressable>
       </Animated.View>
 
-      {/* Filters */}
       <Animated.View style={filtersAnim.animatedStyle}>
         <ScrollView
           horizontal
@@ -116,58 +159,30 @@ export default function TasksScreen() {
         </ScrollView>
       </Animated.View>
 
-      {/* Tasks List */}
       <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
         {filteredTasks.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Ionicons name="checkmark-done-circle-outline" size={48} color="#CCC" />
+            <Ionicons name="checkmark-done-circle-outline" size={48} color={COLORS.textTertiary} />
             <Text style={styles.emptyTitle}>No hay tareas</Text>
             <Text style={styles.emptyText}>Crea tu primera tarea</Text>
           </View>
         ) : (
-          filteredTasks.map((task, index) => {
-            const pConfig = PRIORITY_CONFIG[task.priority || 'medium'];
-            const itemAnim = useStagger({ index, staggerDelay: 60, translateY: 16 });
-            return (
-              <Animated.View key={task.id} style={itemAnim.animatedStyle}>
-                <Pressable
-                  style={styles.taskCard}
-                  onPress={() => toggleTask(task.id)}
-                >
-                  <View style={[styles.checkbox, task.is_done && styles.checkboxDone]}>
-                    {task.is_done && (
-                      <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-                    )}
-                  </View>
-                  <View style={styles.taskContent}>
-                    <Text style={[styles.taskTitle, task.is_done && styles.taskDone]}>
-                      {task.title}
-                    </Text>
-                    {task.description ? (
-                      <Text style={styles.taskDescription} numberOfLines={1}>
-                        {task.description}
-                      </Text>
-                    ) : null}
-                  </View>
-                  <View style={[styles.priorityBadge, { backgroundColor: pConfig.bg }]}>
-                    <Text style={[styles.priorityText, { color: pConfig.color }]}>
-                      {pConfig.label}
-                    </Text>
-                  </View>
-                </Pressable>
-              </Animated.View>
-            );
-          })
+          filteredTasks.map((task, index) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              index={index}
+              onToggle={toggleTask}
+            />
+          ))
         )}
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* FAB */}
       <Pressable style={styles.fab} onPress={() => setShowModal(true)}>
-        <Ionicons name="add" size={28} color="#FFFFFF" />
+        <Ionicons name="add" size={28} color={COLORS.surface} />
       </Pressable>
 
-      {/* Add Modal */}
       <Modal visible={showModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
@@ -179,7 +194,7 @@ export default function TasksScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="Título de la tarea"
-                placeholderTextColor="#BBBBBB"
+                placeholderTextColor={COLORS.textTertiary}
                 value={title}
                 onChangeText={setTitle}
               />
@@ -190,7 +205,7 @@ export default function TasksScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="Descripción (opcional)"
-                placeholderTextColor="#BBBBBB"
+                placeholderTextColor={COLORS.textTertiary}
                 value={description}
                 onChangeText={setDescription}
                 multiline
@@ -199,14 +214,14 @@ export default function TasksScreen() {
 
             <Text style={styles.inputLabel}>Prioridad</Text>
             <View style={styles.priorityRow}>
-              {(Object.keys(PRIORITY_CONFIG) as TaskPriority[]).map((p) => (
+              {(Object.keys(PRIORITY_COLORS) as TaskPriority[]).map((p) => (
                 <Pressable
                   key={p}
                   style={[
                     styles.priorityChip,
                     priority === p && {
-                      backgroundColor: PRIORITY_CONFIG[p].bg,
-                      borderColor: PRIORITY_CONFIG[p].color,
+                      backgroundColor: PRIORITY_BG[p],
+                      borderColor: PRIORITY_COLORS[p],
                     },
                   ]}
                   onPress={() => setPriority(p)}
@@ -214,10 +229,10 @@ export default function TasksScreen() {
                   <Text
                     style={[
                       styles.priorityChipText,
-                      { color: priority === p ? PRIORITY_CONFIG[p].color : '#AA9A8A' },
+                      { color: priority === p ? PRIORITY_COLORS[p] : COLORS.textTertiary },
                     ]}
                   >
-                    {PRIORITY_CONFIG[p].label}
+                    {PRIORITY_LABELS[p].toUpperCase()}
                   </Text>
                 </Pressable>
               ))}
@@ -244,7 +259,7 @@ export default function TasksScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F0EB',
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
@@ -254,25 +269,27 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   menuButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
+    ...SHADOWS.small,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
   },
   bellButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
+    ...SHADOWS.small,
   },
   titleRow: {
     flexDirection: 'row',
@@ -284,20 +301,21 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
   },
   subtitle: {
     fontSize: 13,
-    color: '#AA9A8A',
+    color: COLORS.textTertiary,
     marginTop: 2,
   },
   sortButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#FFFFFF',
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
+    ...SHADOWS.small,
   },
   filtersRow: {
     marginBottom: 12,
@@ -308,70 +326,70 @@ const styles = StyleSheet.create({
   },
   filterChip: {
     paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    paddingVertical: 12,
+    borderRadius: 22,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: '#EDE8E3',
+    borderColor: COLORS.divider,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   filterChipActive: {
-    backgroundColor: '#C56A49',
-    borderColor: '#C56A49',
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   filterText: {
     fontSize: 13,
-    color: '#8A7A6A',
+    color: COLORS.textSecondary,
     fontWeight: '600',
   },
   filterTextActive: {
-    color: '#FFFFFF',
+    color: COLORS.surface,
   },
   list: {
     flex: 1,
     paddingHorizontal: 20,
   },
   emptyCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 32,
     alignItems: 'center',
     gap: 8,
+    ...SHADOWS.small,
   },
   emptyTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
   },
   emptyText: {
     fontSize: 13,
-    color: '#AA9A8A',
+    color: COLORS.textTertiary,
   },
   taskCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderRadius: 14,
     padding: 16,
     marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 1,
+    minHeight: 56,
+    ...SHADOWS.small,
   },
   checkbox: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#EDE8E3',
+    borderColor: COLORS.divider,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
   checkboxDone: {
-    backgroundColor: '#C56A49',
-    borderColor: '#C56A49',
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   taskContent: {
     flex: 1,
@@ -379,22 +397,24 @@ const styles = StyleSheet.create({
   taskTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
   },
   taskDone: {
     textDecorationLine: 'line-through',
-    color: '#AA9A8A',
+    color: COLORS.textTertiary,
   },
   taskDescription: {
     fontSize: 12,
-    color: '#AA9A8A',
+    color: COLORS.textTertiary,
     marginTop: 2,
   },
   priorityBadge: {
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 6,
     borderRadius: 6,
     marginLeft: 8,
+    minHeight: 28,
+    justifyContent: 'center',
   },
   priorityText: {
     fontSize: 10,
@@ -408,22 +428,18 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#3D2B1F',
+    backgroundColor: COLORS.textPrimary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#3D2B1F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    ...SHADOWS.fab,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: COLORS.overlay,
     justifyContent: 'flex-end',
   },
   modal: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -432,34 +448,34 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#EDE8E3',
+    backgroundColor: COLORS.divider,
     alignSelf: 'center',
     marginBottom: 16,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
     marginBottom: 20,
   },
   inputLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#5A4A3A',
+    color: COLORS.textSecondary,
     marginBottom: 8,
   },
   inputContainer: {
-    backgroundColor: '#F9F6F2',
+    backgroundColor: COLORS.surfaceSecondary,
     borderRadius: 12,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#EDE8E3',
+    borderColor: COLORS.divider,
     marginBottom: 16,
   },
   input: {
     paddingVertical: 14,
     fontSize: 15,
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
   },
   priorityRow: {
     flexDirection: 'row',
@@ -468,11 +484,13 @@ const styles = StyleSheet.create({
   },
   priorityChip: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#EDE8E3',
+    borderColor: COLORS.divider,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   priorityChipText: {
     fontSize: 11,
@@ -488,25 +506,29 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
-    backgroundColor: '#F9F6F2',
+    backgroundColor: COLORS.surfaceSecondary,
     borderWidth: 1,
-    borderColor: '#EDE8E3',
+    borderColor: COLORS.divider,
+    minHeight: 48,
+    justifyContent: 'center',
   },
   cancelText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#8A7A6A',
+    color: COLORS.textSecondary,
   },
   saveButton: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
-    backgroundColor: '#C56A49',
+    backgroundColor: COLORS.primary,
+    minHeight: 48,
+    justifyContent: 'center',
   },
   saveText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: COLORS.surface,
   },
 });

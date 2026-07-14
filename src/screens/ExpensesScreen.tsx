@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,22 +11,60 @@ import {
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { COLORS, EXPENSE_CATEGORIES } from '../utils/colors';
+import { COLORS, EXPENSE_CATEGORIES, CATEGORY_COLORS, SHADOWS } from '../utils/colors';
 import { useExpenses } from '../context/ExpensesContext';
 import { today, formatAmount } from '../utils/helpers';
 import { useFadeIn } from '../hooks/useFadeIn';
 import { useStagger } from '../hooks/useStagger';
 
 const CATEGORY_BADGES: Record<string, { label: string; color: string; bg: string }> = {
-  Alimentos: { label: 'ALIMENTOS', color: '#C56A49', bg: '#FDEEE8' },
-  Transporte: { label: 'TRANSPORTE', color: '#91AC9F', bg: '#EEF4F0' },
-  Entretenimiento: { label: 'ENTRETENIMIENTO', color: '#DFAD6D', bg: '#FDF5E6' },
-  Suscripciones: { label: 'SUSCRIPCIONES', color: '#8A7A6A', bg: '#F5F0EB' },
-  Salud: { label: 'SALUD', color: '#74A0B8', bg: '#E8F2F8' },
-  Otros: { label: 'OTROS', color: '#AA9A8A', bg: '#F5F0EB' },
+  Alimentos: { label: 'ALIMENTOS', color: COLORS.primary, bg: COLORS.primarySurface },
+  Transporte: { label: 'TRANSPORTE', color: COLORS.secondary, bg: COLORS.secondarySurface },
+  Entretenimiento: { label: 'ENTRETENIMIENTO', color: COLORS.tertiary, bg: COLORS.tertiarySurface },
+  Suscripciones: { label: 'SUSCRIPCIONES', color: CATEGORY_COLORS.Otros, bg: COLORS.surfaceSecondary },
+  Salud: { label: 'SALUD', color: CATEGORY_COLORS.Salud, bg: COLORS.infoLight },
+  Otros: { label: 'OTROS', color: CATEGORY_COLORS.Otros, bg: COLORS.surfaceSecondary },
 };
 
 const FILTERS = ['Todos', 'Alimentos', 'Transporte'];
+
+interface ExpenseRowProps {
+  expense: {
+    id: string;
+    title: string;
+    amount: number;
+    category?: string;
+    date?: string;
+  };
+  index: number;
+  formatExpenseDate: (dateStr: string) => string;
+}
+
+function ExpenseRow({ expense, index, formatExpenseDate }: ExpenseRowProps) {
+  const itemAnim = useStagger({ index, staggerDelay: 60, translateY: 16 });
+  const badge = CATEGORY_BADGES[expense.category || 'Otros'] || CATEGORY_BADGES.Otros;
+
+  return (
+    <Animated.View style={itemAnim.animatedStyle}>
+      <View style={styles.transactionCard}>
+        <View style={styles.transactionLeft}>
+          <View style={[styles.transactionIcon, { backgroundColor: badge.bg }]}>
+            <Ionicons name="receipt-outline" size={18} color={badge.color} />
+          </View>
+          <View>
+            <Text style={styles.transactionTitle}>{expense.title}</Text>
+            <Text style={styles.transactionDate}>
+              {expense.date ? formatExpenseDate(expense.date) : ''}
+            </Text>
+          </View>
+        </View>
+        <Text style={styles.transactionAmount}>
+          -${expense.amount.toFixed(2)}
+        </Text>
+      </View>
+    </Animated.View>
+  );
+}
 
 export default function ExpensesScreen() {
   const { expenses, addExpense, deleteExpense } = useExpenses();
@@ -84,7 +122,7 @@ export default function ExpensesScreen() {
           <Text style={styles.headerAppName}>VidaSimple</Text>
         </View>
         <Pressable style={styles.bellButton}>
-          <Ionicons name="notifications-outline" size={22} color="#3D2B1F" />
+          <Ionicons name="notifications-outline" size={22} color={COLORS.textPrimary} />
         </Pressable>
       </Animated.View>
 
@@ -122,7 +160,7 @@ export default function ExpensesScreen() {
               Presupuesto: <Text style={styles.budgetDetailBold}>$5,000.00</Text>
             </Text>
             <Text style={styles.budgetDetail}>
-              Quedan <Text style={[styles.budgetDetailBold, { color: '#91AC9F' }]}>
+              Quedan <Text style={[styles.budgetDetailBold, { color: COLORS.secondary }]}>
                 {formatAmount(Math.max(5000 - total, 0))}
               </Text> este mes
             </Text>
@@ -159,34 +197,18 @@ export default function ExpensesScreen() {
 
           {filteredExpenses.length === 0 ? (
             <View style={styles.emptyCard}>
-              <Ionicons name="wallet-outline" size={40} color="#CCC" />
+              <Ionicons name="wallet-outline" size={40} color={COLORS.textTertiary} />
               <Text style={styles.emptyText}>Sin gastos registrados</Text>
             </View>
           ) : (
-            filteredExpenses.map((expense, index) => {
-              const badge = CATEGORY_BADGES[expense.category || 'Otros'] || CATEGORY_BADGES.Otros;
-              const itemAnim = useStagger({ index, staggerDelay: 60, translateY: 16 });
-              return (
-                <Animated.View key={expense.id} style={itemAnim.animatedStyle}>
-                  <View style={styles.transactionCard}>
-                    <View style={styles.transactionLeft}>
-                      <View style={[styles.transactionIcon, { backgroundColor: badge.bg }]}>
-                        <Ionicons name="receipt-outline" size={18} color={badge.color} />
-                      </View>
-                      <View>
-                        <Text style={styles.transactionTitle}>{expense.title}</Text>
-                        <Text style={styles.transactionDate}>
-                          {expense.date ? formatExpenseDate(expense.date) : ''}
-                        </Text>
-                      </View>
-                    </View>
-                    <Text style={styles.transactionAmount}>
-                      -${expense.amount.toFixed(2)}
-                    </Text>
-                  </View>
-                </Animated.View>
-              );
-            })
+            filteredExpenses.map((expense, index) => (
+              <ExpenseRow
+                key={expense.id}
+                expense={expense}
+                index={index}
+                formatExpenseDate={formatExpenseDate}
+              />
+            ))
           )}
         </Animated.View>
 
@@ -195,7 +217,7 @@ export default function ExpensesScreen() {
 
       {/* FAB */}
       <Pressable style={styles.fab} onPress={() => setShowModal(true)}>
-        <Ionicons name="add" size={28} color="#FFFFFF" />
+        <Ionicons name="add" size={28} color={COLORS.textInverse} />
       </Pressable>
 
       {/* Add Modal */}
@@ -210,7 +232,7 @@ export default function ExpensesScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="Nombre del gasto"
-                placeholderTextColor="#BBBBBB"
+                placeholderTextColor={COLORS.textTertiary}
                 value={title}
                 onChangeText={setTitle}
               />
@@ -221,7 +243,7 @@ export default function ExpensesScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="$0.00"
-                placeholderTextColor="#BBBBBB"
+                placeholderTextColor={COLORS.textTertiary}
                 value={amount}
                 onChangeText={setAmount}
                 keyboardType="decimal-pad"
@@ -270,7 +292,7 @@ export default function ExpensesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F0EB',
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
@@ -282,20 +304,20 @@ const styles = StyleSheet.create({
   headerAppName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#C56A49',
+    color: COLORS.primary,
   },
   bellButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
     paddingHorizontal: 20,
     marginBottom: 16,
   },
@@ -303,15 +325,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   budgetCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    ...SHADOWS.small,
   },
   budgetHeader: {
     flexDirection: 'row',
@@ -321,11 +339,11 @@ const styles = StyleSheet.create({
   },
   budgetLabel: {
     fontSize: 13,
-    color: '#AA9A8A',
+    color: COLORS.textTertiary,
     fontWeight: '500',
   },
   budgetBadge: {
-    backgroundColor: '#91AC9F20',
+    backgroundColor: COLORS.secondarySurface,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -333,12 +351,12 @@ const styles = StyleSheet.create({
   budgetBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#91AC9F',
+    color: COLORS.secondary,
   },
   budgetAmount: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
     marginBottom: 16,
   },
   budgetBarContainer: {
@@ -347,18 +365,18 @@ const styles = StyleSheet.create({
   budgetBarBg: {
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#F0EBE5',
+    backgroundColor: COLORS.surfaceTertiary,
     overflow: 'hidden',
     marginBottom: 6,
   },
   budgetBarFill: {
     height: '100%',
     borderRadius: 3,
-    backgroundColor: '#C56A49',
+    backgroundColor: COLORS.primary,
   },
   budgetPercent: {
     fontSize: 12,
-    color: '#AA9A8A',
+    color: COLORS.textTertiary,
     textAlign: 'right',
   },
   budgetDetails: {
@@ -367,11 +385,11 @@ const styles = StyleSheet.create({
   },
   budgetDetail: {
     fontSize: 12,
-    color: '#AA9A8A',
+    color: COLORS.textTertiary,
   },
   budgetDetailBold: {
     fontWeight: '700',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
   },
   filtersRow: {
     marginBottom: 20,
@@ -383,31 +401,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: '#EDE8E3',
+    borderColor: COLORS.divider,
   },
   filterChipActive: {
-    backgroundColor: '#C56A49',
-    borderColor: '#C56A49',
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   filterText: {
     fontSize: 13,
-    color: '#8A7A6A',
+    color: COLORS.textSecondary,
     fontWeight: '600',
   },
   filterTextActive: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
   },
   sectionTitle: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#AA9A8A',
+    color: COLORS.textTertiary,
     letterSpacing: 1,
     marginBottom: 12,
   },
   emptyCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 32,
     alignItems: 'center',
@@ -415,21 +433,17 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: '#AA9A8A',
+    color: COLORS.textTertiary,
   },
   transactionCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderRadius: 14,
     padding: 14,
     marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 1,
+    ...SHADOWS.small,
   },
   transactionLeft: {
     flexDirection: 'row',
@@ -447,17 +461,17 @@ const styles = StyleSheet.create({
   transactionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
   },
   transactionDate: {
     fontSize: 11,
-    color: '#AA9A8A',
+    color: COLORS.textTertiary,
     marginTop: 2,
   },
   transactionAmount: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#C56A49',
+    color: COLORS.primary,
   },
   fab: {
     position: 'absolute',
@@ -466,22 +480,18 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#3D2B1F',
+    backgroundColor: COLORS.textPrimary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#3D2B1F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    ...SHADOWS.fab,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: COLORS.overlay,
     justifyContent: 'flex-end',
   },
   modal: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -490,58 +500,58 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#EDE8E3',
+    backgroundColor: COLORS.divider,
     alignSelf: 'center',
     marginBottom: 16,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
     marginBottom: 20,
   },
   inputLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#5A4A3A',
+    color: COLORS.textSecondary,
     marginBottom: 8,
   },
   inputContainer: {
-    backgroundColor: '#F9F6F2',
+    backgroundColor: COLORS.surfaceSecondary,
     borderRadius: 12,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#EDE8E3',
+    borderColor: COLORS.divider,
     marginBottom: 16,
   },
   input: {
     paddingVertical: 14,
     fontSize: 15,
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
   },
   categoryScroll: {
     marginBottom: 20,
   },
   categoryChip: {
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderRadius: 16,
-    backgroundColor: '#F9F6F2',
+    backgroundColor: COLORS.surfaceSecondary,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#EDE8E3',
+    borderColor: COLORS.divider,
   },
   categoryChipActive: {
-    backgroundColor: '#C56A49',
-    borderColor: '#C56A49',
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   categoryText: {
     fontSize: 12,
-    color: '#8A7A6A',
+    color: COLORS.textSecondary,
     fontWeight: '600',
   },
   categoryTextActive: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -552,25 +562,25 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
-    backgroundColor: '#F9F6F2',
+    backgroundColor: COLORS.surfaceSecondary,
     borderWidth: 1,
-    borderColor: '#EDE8E3',
+    borderColor: COLORS.divider,
   },
   cancelText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#8A7A6A',
+    color: COLORS.textSecondary,
   },
   saveButton: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
-    backgroundColor: '#C56A49',
+    backgroundColor: COLORS.primary,
   },
   saveText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
   },
 });

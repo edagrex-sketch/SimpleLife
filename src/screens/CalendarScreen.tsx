@@ -307,9 +307,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   navButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   },
   weekdays: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     marginBottom: 8,
   },
   weekday: {
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
   },
   dayCell: {
     width: '14.28%',
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   dayTextActive: {
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
     fontWeight: '700',
   },
   dayTextToday: {
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   dayDotActive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.textInverse,
   },
   eventsSection: {
     flex: 1,
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: COLORS.overlay,
     justifyContent: 'flex-end',
   },
   modal: {
@@ -501,6 +501,6 @@ const styles = StyleSheet.create({
   saveText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: COLORS.textInverse,
   },
 });

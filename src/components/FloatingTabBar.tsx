@@ -23,6 +23,7 @@ interface Tab {
 
 const TABS: Tab[] = [
   { id: 'home', icon: 'home', label: 'Inicio' },
+  { id: 'tasks', icon: 'checkbox', label: 'Tareas' },
   { id: 'calendar', icon: 'calendar', label: 'Calendario' },
   { id: 'spaces', icon: 'trophy', label: 'Rankings' },
   { id: 'expenses', icon: 'wallet', label: 'Gastos' },
@@ -81,7 +82,7 @@ function FABButton({ onPress }: { onPress: () => void }) {
         onPress={onPress}
         activeOpacity={0.85}
       >
-        <Ionicons name="add" size={32} color="#FFFFFF" />
+        <Ionicons name="add" size={32} color={COLORS.surface} />
       </TouchableOpacity>
     </Animated.View>
   );

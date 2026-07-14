@@ -3,7 +3,7 @@ import { View, Text, ScrollView, Pressable, Alert, StyleSheet } from 'react-nati
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { COLORS } from '../utils/colors';
+import { COLORS, SHADOWS } from '../utils/colors';
 import { useAuth } from '../context/AuthContext';
 import { useTasks } from '../context/TaskContext';
 import { useExpenses } from '../context/ExpensesContext';
@@ -23,13 +23,6 @@ export default function ProfileScreen() {
   const menuAnim = useFadeIn({ delay: 450, translateY: 20 });
   const logoutAnim = useFadeIn({ delay: 550, translateY: 15 });
 
-  const handleSignOut = () => {
-    Alert.alert('Cerrar Sesión', '¿Estás seguro?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Salir', style: 'destructive', onPress: signOut },
-    ]);
-  };
-
   const menuItems = [
     { icon: 'person-outline', label: 'Cuenta' },
     { icon: 'notifications-outline', label: 'Notificaciones' },
@@ -37,16 +30,27 @@ export default function ProfileScreen() {
     { icon: 'help-circle-outline', label: 'Ayuda' },
   ];
 
+  const menuAnimations = menuItems.map((_, index) =>
+    useStagger({ index, staggerDelay: 60, translateY: 12 })
+  );
+
+  const handleSignOut = () => {
+    Alert.alert('Cerrar Sesión', '¿Estás seguro?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Salir', style: 'destructive', onPress: signOut },
+    ]);
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <Animated.View style={[styles.header, headerAnim.animatedStyle]}>
         <Pressable style={styles.menuButton}>
-          <Ionicons name="menu" size={24} color="#3D2B1F" />
+          <Ionicons name="menu" size={24} color={COLORS.textPrimary} />
         </Pressable>
         <Text style={styles.headerTitle}>Lifestyle</Text>
         <Pressable style={styles.bellButton}>
-          <Ionicons name="notifications-outline" size={22} color="#3D2B1F" />
+          <Ionicons name="notifications-outline" size={22} color={COLORS.textPrimary} />
         </Pressable>
       </Animated.View>
 
@@ -67,57 +71,54 @@ export default function ProfileScreen() {
         <Animated.View style={[styles.statsGrid, statsAnim.animatedStyle]}>
           <View style={styles.statCard}>
             <View style={styles.statIconContainer}>
-              <Ionicons name="flame-outline" size={20} color="#C56A49" />
+              <Ionicons name="flame-outline" size={20} color={COLORS.primary} />
             </View>
-            <Text style={styles.statNumber}>14</Text>
+            <Text style={styles.statNumber}>—</Text>
             <Text style={styles.statLabel}>Días siguientes</Text>
           </View>
           <View style={styles.statCard}>
             <View style={styles.statIconContainer}>
-              <Ionicons name="checkmark-circle-outline" size={20} color="#C56A49" />
+              <Ionicons name="checkmark-circle-outline" size={20} color={COLORS.primary} />
             </View>
             <Text style={styles.statNumber}>{completedTasks}</Text>
             <Text style={styles.statLabel}>Tareas completadas</Text>
           </View>
           <View style={styles.statCard}>
             <View style={styles.statIconContainer}>
-              <Ionicons name="people-outline" size={20} color="#C56A49" />
+              <Ionicons name="people-outline" size={20} color={COLORS.primary} />
             </View>
-            <Text style={styles.statNumber}>6</Text>
+            <Text style={styles.statNumber}>—</Text>
             <Text style={styles.statLabel}>Espacios</Text>
           </View>
           <View style={styles.statCard}>
             <View style={styles.statIconContainer}>
-              <Ionicons name="trophy-outline" size={20} color="#C56A49" />
+              <Ionicons name="trophy-outline" size={20} color={COLORS.primary} />
             </View>
-            <Text style={styles.statNumber}>12</Text>
+            <Text style={styles.statNumber}>—</Text>
             <Text style={styles.statLabel}>Logros</Text>
           </View>
         </Animated.View>
 
         {/* Menu Items */}
         <Animated.View style={[styles.menuCard, menuAnim.animatedStyle]}>
-          {menuItems.map((item, index) => {
-            const itemAnim = useStagger({ index, staggerDelay: 60, translateY: 12 });
-            return (
-              <React.Fragment key={item.label}>
-                <Animated.View style={itemAnim.animatedStyle}>
-                  <Pressable style={styles.menuItem}>
-                    <Ionicons name={item.icon as any} size={20} color="#5A4A3A" />
-                    <Text style={styles.menuLabel}>{item.label}</Text>
-                    <Ionicons name="chevron-forward" size={18} color="#CCBBAA" />
-                  </Pressable>
-                </Animated.View>
-                {index < menuItems.length - 1 && <View style={styles.menuDivider} />}
-              </React.Fragment>
-            );
-          })}
+          {menuItems.map((item, index) => (
+            <React.Fragment key={item.label}>
+              <Animated.View style={menuAnimations[index].animatedStyle}>
+                <Pressable style={styles.menuItem}>
+                  <Ionicons name={item.icon as any} size={20} color={COLORS.textSecondary} />
+                  <Text style={styles.menuLabel}>{item.label}</Text>
+                  <Ionicons name="chevron-forward" size={18} color={COLORS.textTertiary} />
+                </Pressable>
+              </Animated.View>
+              {index < menuItems.length - 1 && <View style={styles.menuDivider} />}
+            </React.Fragment>
+          ))}
         </Animated.View>
 
         {/* Logout */}
         <Animated.View style={logoutAnim.animatedStyle}>
           <Pressable style={styles.logoutButton} onPress={handleSignOut}>
-            <Ionicons name="log-out-outline" size={18} color="#AA9A8A" />
+            <Ionicons name="log-out-outline" size={18} color={COLORS.textTertiary} />
             <Text style={styles.logoutText}>Cerrar sesión</Text>
           </Pressable>
         </Animated.View>
@@ -131,7 +132,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F0EB',
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
@@ -141,23 +142,23 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   menuButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
   },
   bellButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -172,7 +173,7 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: '#C56A49',
+    backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 14,
@@ -180,16 +181,16 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 30,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: COLORS.surface,
   },
   name: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
   },
   email: {
     fontSize: 13,
-    color: '#AA9A8A',
+    color: COLORS.textTertiary,
     marginTop: 4,
   },
   statsGrid: {
@@ -200,21 +201,17 @@ const styles = StyleSheet.create({
   },
   statCard: {
     width: '47%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 1,
+    ...SHADOWS.small,
   },
   statIconContainer: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: '#FDEEE8',
+    backgroundColor: COLORS.primarySurface,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 10,
@@ -222,24 +219,20 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
   },
   statLabel: {
     fontSize: 11,
-    color: '#AA9A8A',
+    color: COLORS.textTertiary,
     marginTop: 4,
     fontWeight: '500',
   },
   menuCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     paddingHorizontal: 16,
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 1,
+    ...SHADOWS.small,
   },
   menuItem: {
     flexDirection: 'row',
@@ -251,11 +244,11 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontWeight: '500',
-    color: '#3D2B1F',
+    color: COLORS.textPrimary,
   },
   menuDivider: {
     height: 1,
-    backgroundColor: '#F0EBE5',
+    backgroundColor: COLORS.divider,
   },
   logoutButton: {
     flexDirection: 'row',
@@ -267,6 +260,6 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#AA9A8A',
+    color: COLORS.textTertiary,
   },
 });
