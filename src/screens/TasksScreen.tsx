@@ -24,6 +24,7 @@ import { hapticLight, hapticMedium, hapticSuccess } from '../hooks/useHaptic';
 import TaskCard from '../components/TaskCard';
 import TaskFilters from '../components/TaskFilters';
 import TaskEmptyState from '../components/TaskEmptyState';
+import TaskCompletedSection from '../components/TaskCompletedSection';
 
 const PROJECTS = ['General', 'Trabajo', 'Personal', 'Salud', 'Finanzas', 'Educación'];
 
@@ -42,39 +43,46 @@ export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
   const [dueDate, setDueDate] = useState(today());
   const [project, setProject] = useState('General');
   const [refreshing, setRefreshing] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const headerAnim = useFadeIn({ delay: 0, translateY: 15 });
   const titleAnim = useFadeIn({ delay: 100, translateY: 15 });
 
+  const pendingTasks = useMemo(() => tasks.filter((t) => !t.is_done), [tasks]);
+  const completedTasks = useMemo(() => tasks.filter((t) => !!t.is_done), [tasks]);
+
   const filteredTasks = useMemo(() => {
-    return tasks.filter((t) => {
+    return pendingTasks.filter((t) => {
       switch (filter) {
         case 'Hoy':
           return t.due_date === today();
         case 'Pendientes':
-          return !t.is_done;
-        case 'Completadas':
-          return t.is_done;
+          return true;
         default:
           return true;
       }
     });
-  }, [tasks, filter]);
+  }, [pendingTasks, filter]);
+
+  const filteredCompleted = useMemo(() => {
+    if (filter === 'Completadas') return completedTasks;
+    if (filter === 'Hoy') return completedTasks.filter((t) => t.due_date === today());
+    return [];
+  }, [completedTasks, filter]);
 
   const filterCounts = useMemo(() => ({
-    Todas: tasks.length,
-    Hoy: tasks.filter((t) => t.due_date === today()).length,
-    Pendientes: tasks.filter((t) => !t.is_done).length,
-    Completadas: tasks.filter((t) => t.is_done).length,
-  }), [tasks]);
+    Todas: pendingTasks.length,
+    Hoy: pendingTasks.filter((t) => t.due_date === today()).length,
+    Pendientes: pendingTasks.length,
+    Completadas: completedTasks.length,
+  }), [pendingTasks, completedTasks]);
 
   const filters = useMemo(() => [
     { id: 'Todas', label: 'Todas', count: filterCounts.Todas },
     { id: 'Hoy', label: 'Hoy', count: filterCounts.Hoy },
     { id: 'Pendientes', label: 'Pendientes', count: filterCounts.Pendientes },
-    { id: 'Completadas', label: 'Completadas', count: filterCounts.Completadas },
   ], [filterCounts]);
+
+  const showCompleted = filter === 'Todas' || filter === 'Completadas';
 
   const handleAdd = async () => {
     if (!title.trim()) return;
@@ -103,18 +111,10 @@ export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
     await toggleTask(taskId);
   }, [toggleTask]);
 
-  const handleDelete = useCallback(async (taskId: string) => {
-    await deleteTask(taskId);
-  }, [deleteTask]);
-
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     await new Promise<void>((r) => setTimeout(r, 800));
     setRefreshing(false);
-  }, []);
-
-  const handleFilterPress = useCallback((filterId: string) => {
-    setFilter(filterId);
   }, []);
 
   const generateDateOptions = () => {
@@ -138,14 +138,35 @@ export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
 
   const dateOptions = generateDateOptions();
 
-  const renderItem = useCallback(({ item, index }: { item: Task; index: number }) => (
-    <TaskCard
-      task={item}
-      onToggle={() => handleToggle(item.id)}
-      onDelete={() => handleDelete(item.id)}
-      onPress={() => {}}
-    />
-  ), [handleToggle, handleDelete]);
+  const ListHeader = () => (
+    <>
+      <TaskFilters
+        filters={filters}
+        activeFilter={filter}
+        onFilterPress={setFilter}
+      />
+      {filteredTasks.length === 0 && filter !== 'Completadas' && (
+        <TaskEmptyState filter={filter} />
+      )}
+    </>
+  );
+
+  const ListFooter = () => (
+    <>
+      {showCompleted && filteredCompleted.length > 0 && (
+        <View style={styles.completedSection}>
+          <TaskCompletedSection
+            tasks={filteredCompleted}
+            onToggle={handleToggle}
+          />
+        </View>
+      )}
+      {filter === 'Completadas' && filteredCompleted.length === 0 && (
+        <TaskEmptyState filter="Completadas" />
+      )}
+      <View style={{ height: 120 }} />
+    </>
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -162,24 +183,24 @@ export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
 
       <Animated.View style={[styles.titleRow, titleAnim.animatedStyle]}>
         <View>
-          <Text style={styles.title}>Mis tareas</Text>
-          <Text style={styles.subtitle}>{tasks.filter((t) => !t.is_done).length} pendientes</Text>
+          <Text style={styles.title}>Mis Tareas</Text>
+          <Text style={styles.subtitle}>Tienes {pendingTasks.length} tareas pendientes para hoy.</Text>
         </View>
       </Animated.View>
-
-      <TaskFilters
-        filters={filters}
-        activeFilter={filter}
-        onFilterPress={handleFilterPress}
-      />
 
       <FlatList
         data={filteredTasks}
         keyExtractor={(item) => item.id}
-        renderItem={renderItem}
+        renderItem={({ item }) => (
+          <TaskCard
+            task={item}
+            onToggle={() => handleToggle(item.id)}
+          />
+        )}
+        ListHeaderComponent={ListHeader}
+        ListFooterComponent={ListFooter}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={<TaskEmptyState filter={filter} />}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -282,7 +303,7 @@ export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
                   style={[
                     styles.priorityChip,
                     priority === p && {
-                      backgroundColor: PRIORITY_BG[p],
+                      backgroundColor: PRIORITY_COLORS[p] + '15',
                       borderColor: PRIORITY_COLORS[p],
                     },
                   ]}
@@ -322,12 +343,6 @@ export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
     </SafeAreaView>
   );
 }
-
-const PRIORITY_BG: Record<string, string> = {
-  low: 'rgba(76, 175, 80, 0.10)',
-  medium: 'rgba(223, 173, 109, 0.10)',
-  high: 'rgba(197, 106, 73, 0.10)',
-};
 
 const styles = StyleSheet.create({
   container: {
@@ -376,9 +391,6 @@ const styles = StyleSheet.create({
     borderColor: COLORS.surface,
   },
   titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: 20,
     marginBottom: 16,
   },
@@ -388,22 +400,27 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
   },
   subtitle: {
-    fontSize: 13,
-    color: COLORS.textTertiary,
-    marginTop: 2,
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginTop: 4,
   },
   list: {
     paddingHorizontal: 20,
-    paddingBottom: 100,
+  },
+  completedSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.divider,
   },
   fab: {
     position: 'absolute',
-    bottom: 90,
-    alignSelf: 'center',
+    bottom: 100,
+    right: 24,
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: COLORS.textPrimary,
+    backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
     ...SHADOWS.fab,

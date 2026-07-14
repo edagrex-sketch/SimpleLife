@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { COLORS, SHADOWS } from '../utils/colors';
+import { COLORS } from '../utils/colors';
 import { hapticSelection } from '../hooks/useHaptic';
 
 interface TaskFilter {
@@ -36,13 +36,9 @@ export default function TaskFilters({ filters, activeFilter, onFilterPress }: Ta
           <Text style={[styles.label, activeFilter === f.id && styles.labelActive]}>
             {f.label}
           </Text>
-          {f.count > 0 && (
-            <View style={[styles.badge, activeFilter === f.id && styles.badgeActive]}>
-              <Text style={[styles.badgeText, activeFilter === f.id && styles.badgeTextActive]}>
-                {f.count}
-              </Text>
-            </View>
-          )}
+          <Text style={[styles.count, activeFilter === f.id && styles.countActive]}>
+            {f.count}
+          </Text>
         </Pressable>
       ))}
     </ScrollView>
@@ -58,14 +54,13 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 22,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.divider,
     gap: 6,
-    minHeight: 44,
   },
   chipActive: {
     backgroundColor: COLORS.primary,
@@ -74,28 +69,24 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 13,
     color: COLORS.textSecondary,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   labelActive: {
     color: COLORS.surface,
+    fontWeight: '600',
   },
-  badge: {
-    backgroundColor: COLORS.surfaceSecondary,
-    borderRadius: 10,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    minWidth: 22,
-    alignItems: 'center',
-  },
-  badgeActive: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
-  },
-  badgeText: {
-    fontSize: 11,
+  count: {
+    fontSize: 12,
     fontWeight: '700',
-    color: COLORS.textSecondary,
+    color: COLORS.textTertiary,
+    backgroundColor: COLORS.surfaceSecondary,
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    overflow: 'hidden',
   },
-  badgeTextActive: {
+  countActive: {
     color: COLORS.surface,
+    backgroundColor: 'rgba(255,255,255,0.25)',
   },
 });
