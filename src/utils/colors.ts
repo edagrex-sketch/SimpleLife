@@ -25,8 +25,8 @@ export const COLORS = {
 
   // Text
   textPrimary: '#1A1A1A',
-  textSecondary: '#8A8A8A',
-  textTertiary: '#AAAAAA',
+  textSecondary: '#6E6E6E',
+  textTertiary: '#8A8A8A',
   textInverse: '#F5F5F0',
   textInverseSecondary: '#9DB0A8',
 

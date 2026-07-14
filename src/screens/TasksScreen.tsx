@@ -1,83 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
-  ScrollView,
+  FlatList,
   TextInput,
   Pressable,
   Modal,
   StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  RefreshControl,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { COLORS, SHADOWS, PRIORITY_COLORS, PRIORITY_LABELS } from '../utils/colors';
+import { COLORS, SHADOWS, PRIORITY_COLORS, PRIORITY_LABELS, CATEGORY_COLORS } from '../utils/colors';
 import { useTasks } from '../context/TaskContext';
 import { useNotifications } from '../context/NotificationsContext';
-import { TaskPriority } from '../types';
+import { Task, TaskPriority } from '../types';
 import { today } from '../utils/helpers';
 import { useFadeIn } from '../hooks/useFadeIn';
-import { useStagger } from '../hooks/useStagger';
+import { hapticLight, hapticMedium, hapticSuccess } from '../hooks/useHaptic';
+import TaskCard from '../components/TaskCard';
+import TaskFilters from '../components/TaskFilters';
+import TaskEmptyState from '../components/TaskEmptyState';
 
-const FILTERS = ['Todas', 'Hoy', 'Pendientes', 'Completadas'];
-
-const PRIORITY_BG: Record<string, string> = {
-  low: 'rgba(76, 175, 80, 0.10)',
-  medium: 'rgba(223, 173, 109, 0.10)',
-  high: 'rgba(197, 106, 73, 0.10)',
-};
-
-function TaskCard({
-  task,
-  index,
-  onToggle,
-}: {
-  task: any;
-  index: number;
-  onToggle: (id: string) => void;
-}) {
-  const itemAnim = useStagger({ index, staggerDelay: 60, translateY: 16 });
-  const prioColor = PRIORITY_COLORS[task.priority || 'medium'] || COLORS.primary;
-  const prioLabel = PRIORITY_LABELS[task.priority || 'medium'] || 'Media';
-  const prioBg = PRIORITY_BG[task.priority || 'medium'] || PRIORITY_BG.medium;
-
-  return (
-    <Animated.View style={itemAnim.animatedStyle}>
-      <Pressable
-        style={styles.taskCard}
-        onPress={() => onToggle(task.id)}
-      >
-        <View style={[styles.checkbox, task.is_done && styles.checkboxDone]}>
-          {task.is_done && (
-            <Ionicons name="checkmark" size={14} color={COLORS.surface} />
-          )}
-        </View>
-        <View style={styles.taskContent}>
-          <Text style={[styles.taskTitle, task.is_done && styles.taskDone]}>
-            {task.title}
-          </Text>
-          {task.description ? (
-            <Text style={styles.taskDescription} numberOfLines={1}>
-              {task.description}
-            </Text>
-          ) : null}
-        </View>
-        <View style={[styles.priorityBadge, { backgroundColor: prioBg }]}>
-          <Text style={[styles.priorityText, { color: prioColor }]}>
-            {prioLabel.toUpperCase()}
-          </Text>
-        </View>
-      </Pressable>
-    </Animated.View>
-  );
-}
+const PROJECTS = ['General', 'Trabajo', 'Personal', 'Salud', 'Finanzas', 'Educación'];
 
 interface TasksScreenProps {
   onOpenNotifications?: () => void;
 }
 
 export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
-  const { tasks, addTask, toggleTask } = useTasks();
+  const { tasks, addTask, toggleTask, deleteTask } = useTasks();
   const { unreadCount } = useNotifications();
   const [filter, setFilter] = useState('Todas');
   const [showModal, setShowModal] = useState(false);
@@ -85,48 +40,120 @@ export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [dueDate, setDueDate] = useState(today());
+  const [project, setProject] = useState('General');
+  const [refreshing, setRefreshing] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const headerAnim = useFadeIn({ delay: 0, translateY: 15 });
   const titleAnim = useFadeIn({ delay: 100, translateY: 15 });
-  const filtersAnim = useFadeIn({ delay: 200, translateY: 15 });
 
-  const filteredTasks = tasks.filter((t) => {
-    switch (filter) {
-      case 'Hoy':
-        return t.due_date === today();
-      case 'Pendientes':
-        return !t.is_done;
-      case 'Completadas':
-        return t.is_done;
-      default:
-        return true;
-    }
-  });
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((t) => {
+      switch (filter) {
+        case 'Hoy':
+          return t.due_date === today();
+        case 'Pendientes':
+          return !t.is_done;
+        case 'Completadas':
+          return t.is_done;
+        default:
+          return true;
+      }
+    });
+  }, [tasks, filter]);
+
+  const filterCounts = useMemo(() => ({
+    Todas: tasks.length,
+    Hoy: tasks.filter((t) => t.due_date === today()).length,
+    Pendientes: tasks.filter((t) => !t.is_done).length,
+    Completadas: tasks.filter((t) => t.is_done).length,
+  }), [tasks]);
+
+  const filters = useMemo(() => [
+    { id: 'Todas', label: 'Todas', count: filterCounts.Todas },
+    { id: 'Hoy', label: 'Hoy', count: filterCounts.Hoy },
+    { id: 'Pendientes', label: 'Pendientes', count: filterCounts.Pendientes },
+    { id: 'Completadas', label: 'Completadas', count: filterCounts.Completadas },
+  ], [filterCounts]);
 
   const handleAdd = async () => {
     if (!title.trim()) return;
+    hapticSuccess();
     await addTask({
       title: title.trim(),
       description,
       priority,
       due_date: dueDate,
-      project: 'General',
+      project,
       is_done: false,
     });
+    resetForm();
+    setShowModal(false);
+  };
+
+  const resetForm = () => {
     setTitle('');
     setDescription('');
     setPriority('medium');
     setDueDate(today());
-    setShowModal(false);
+    setProject('General');
   };
+
+  const handleToggle = useCallback(async (taskId: string) => {
+    await toggleTask(taskId);
+  }, [toggleTask]);
+
+  const handleDelete = useCallback(async (taskId: string) => {
+    await deleteTask(taskId);
+  }, [deleteTask]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await new Promise<void>((r) => setTimeout(r, 800));
+    setRefreshing(false);
+  }, []);
+
+  const handleFilterPress = useCallback((filterId: string) => {
+    setFilter(filterId);
+  }, []);
+
+  const generateDateOptions = () => {
+    const dates: { label: string; value: string }[] = [];
+    const now = new Date();
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(now);
+      d.setDate(d.getDate() + i);
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      let label = '';
+      if (i === 0) label = 'Hoy';
+      else if (i === 1) label = 'Mañana';
+      else {
+        const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+        label = `${days[d.getDay()]} ${d.getDate()}`;
+      }
+      dates.push({ label, value: dateStr });
+    }
+    return dates;
+  };
+
+  const dateOptions = generateDateOptions();
+
+  const renderItem = useCallback(({ item, index }: { item: Task; index: number }) => (
+    <TaskCard
+      task={item}
+      onToggle={() => handleToggle(item.id)}
+      onDelete={() => handleDelete(item.id)}
+      onPress={() => {}}
+    />
+  ), [handleToggle, handleDelete]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Animated.View style={[styles.header, headerAnim.animatedStyle]}>
         <Pressable style={styles.menuButton}>
-          <Ionicons name="menu" size={24} color={COLORS.textPrimary} />
+          <Ionicons name="menu" size={22} color={COLORS.textPrimary} />
         </Pressable>
-        <Text style={styles.headerTitle}>Lifestyle</Text>
+        <Text style={styles.headerTitle}>Tareas</Text>
         <Pressable style={styles.bellButton} onPress={onOpenNotifications}>
           <Ionicons name="notifications-outline" size={22} color={COLORS.textPrimary} />
           {unreadCount > 0 && <View style={styles.badge} />}
@@ -135,75 +162,58 @@ export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
 
       <Animated.View style={[styles.titleRow, titleAnim.animatedStyle]}>
         <View>
-          <Text style={styles.title}>Tareas</Text>
-          <Text style={styles.subtitle}>Organiza tu día con intención</Text>
+          <Text style={styles.title}>Mis tareas</Text>
+          <Text style={styles.subtitle}>{tasks.filter((t) => !t.is_done).length} pendientes</Text>
         </View>
-        <Pressable style={styles.sortButton}>
-          <Ionicons name="swap-vertical" size={18} color={COLORS.primary} />
-        </Pressable>
       </Animated.View>
 
-      <Animated.View style={filtersAnim.animatedStyle}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filtersRow}
-          contentContainerStyle={styles.filtersContent}
-        >
-          {FILTERS.map((f) => (
-            <Pressable
-              key={f}
-              style={[styles.filterChip, filter === f && styles.filterChipActive]}
-              onPress={() => setFilter(f)}
-            >
-              <Text
-                style={[styles.filterText, filter === f && styles.filterTextActive]}
-              >
-                {f}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
-      </Animated.View>
+      <TaskFilters
+        filters={filters}
+        activeFilter={filter}
+        onFilterPress={handleFilterPress}
+      />
 
-      <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
-        {filteredTasks.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Ionicons name="checkmark-done-circle-outline" size={48} color={COLORS.textTertiary} />
-            <Text style={styles.emptyTitle}>No hay tareas</Text>
-            <Text style={styles.emptyText}>Crea tu primera tarea</Text>
-          </View>
-        ) : (
-          filteredTasks.map((task, index) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              index={index}
-              onToggle={toggleTask}
-            />
-          ))
-        )}
-        <View style={{ height: 100 }} />
-      </ScrollView>
+      <FlatList
+        data={filteredTasks}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={<TaskEmptyState filter={filter} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={COLORS.primary}
+          />
+        }
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+      />
 
-      <Pressable style={styles.fab} onPress={() => setShowModal(true)}>
+      <Pressable style={styles.fab} onPress={() => { hapticMedium(); setShowModal(true); }}>
         <Ionicons name="add" size={28} color={COLORS.surface} />
       </Pressable>
 
       <Modal visible={showModal} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <Pressable style={styles.modalOverlayBg} onPress={() => setShowModal(false)} />
           <View style={styles.modal}>
             <View style={styles.modalHandle} />
             <Text style={styles.modalTitle}>Nueva Tarea</Text>
 
-            <Text style={styles.inputLabel}>Título</Text>
+            <Text style={styles.inputLabel}>Título *</Text>
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
-                placeholder="Título de la tarea"
+                placeholder="¿Qué necesitas hacer?"
                 placeholderTextColor={COLORS.textTertiary}
                 value={title}
                 onChangeText={setTitle}
+                autoFocus
               />
             </View>
 
@@ -211,13 +221,58 @@ export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
-                placeholder="Descripción (opcional)"
+                placeholder="Detalles (opcional)"
                 placeholderTextColor={COLORS.textTertiary}
                 value={description}
                 onChangeText={setDescription}
                 multiline
               />
             </View>
+
+            <Text style={styles.inputLabel}>Fecha</Text>
+            <FlatList
+              horizontal
+              data={dateOptions}
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item) => item.value}
+              contentContainerStyle={styles.dateList}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={[styles.dateChip, dueDate === item.value && styles.dateChipActive]}
+                  onPress={() => { hapticLight(); setDueDate(item.value); }}
+                >
+                  <Text style={[styles.dateChipText, dueDate === item.value && styles.dateChipTextActive]}>
+                    {item.label}
+                  </Text>
+                </Pressable>
+              )}
+            />
+
+            <Text style={styles.inputLabel}>Proyecto</Text>
+            <FlatList
+              horizontal
+              data={PROJECTS}
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item) => item}
+              contentContainerStyle={styles.projectList}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={[
+                    styles.projectChip,
+                    project === item && { backgroundColor: (CATEGORY_COLORS[item] || COLORS.primary) + '20', borderColor: CATEGORY_COLORS[item] || COLORS.primary },
+                  ]}
+                  onPress={() => { hapticLight(); setProject(item); }}
+                >
+                  <View style={[styles.projectDot, { backgroundColor: CATEGORY_COLORS[item] || COLORS.primary }]} />
+                  <Text style={[
+                    styles.projectChipText,
+                    project === item && { color: CATEGORY_COLORS[item] || COLORS.primary },
+                  ]}>
+                    {item}
+                  </Text>
+                </Pressable>
+              )}
+            />
 
             <Text style={styles.inputLabel}>Prioridad</Text>
             <View style={styles.priorityRow}>
@@ -231,15 +286,16 @@ export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
                       borderColor: PRIORITY_COLORS[p],
                     },
                   ]}
-                  onPress={() => setPriority(p)}
+                  onPress={() => { hapticLight(); setPriority(p); }}
                 >
+                  <View style={[styles.priorityDot, { backgroundColor: PRIORITY_COLORS[p] }]} />
                   <Text
                     style={[
                       styles.priorityChipText,
-                      { color: priority === p ? PRIORITY_COLORS[p] : COLORS.textTertiary },
+                      { color: priority === p ? PRIORITY_COLORS[p] : COLORS.textSecondary },
                     ]}
                   >
-                    {PRIORITY_LABELS[p].toUpperCase()}
+                    {PRIORITY_LABELS[p]}
                   </Text>
                 </Pressable>
               ))}
@@ -248,20 +304,30 @@ export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
             <View style={styles.modalButtons}>
               <Pressable
                 style={styles.cancelButton}
-                onPress={() => setShowModal(false)}
+                onPress={() => { hapticLight(); setShowModal(false); resetForm(); }}
               >
                 <Text style={styles.cancelText}>Cancelar</Text>
               </Pressable>
-              <Pressable style={styles.saveButton} onPress={handleAdd}>
+              <Pressable
+                style={[styles.saveButton, !title.trim() && styles.saveButtonDisabled]}
+                onPress={handleAdd}
+                disabled={!title.trim()}
+              >
                 <Text style={styles.saveText}>Crear</Text>
               </Pressable>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );
 }
+
+const PRIORITY_BG: Record<string, string> = {
+  low: 'rgba(76, 175, 80, 0.10)',
+  medium: 'rgba(223, 173, 109, 0.10)',
+  high: 'rgba(197, 106, 73, 0.10)',
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -278,7 +344,7 @@ const styles = StyleSheet.create({
   menuButton: {
     width: 44,
     height: 44,
-    borderRadius: 12,
+    borderRadius: 14,
     backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -292,7 +358,7 @@ const styles = StyleSheet.create({
   bellButton: {
     width: 44,
     height: 44,
-    borderRadius: 12,
+    borderRadius: 14,
     backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -317,7 +383,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '700',
     color: COLORS.textPrimary,
   },
@@ -326,118 +392,9 @@ const styles = StyleSheet.create({
     color: COLORS.textTertiary,
     marginTop: 2,
   },
-  sortButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: COLORS.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...SHADOWS.small,
-  },
-  filtersRow: {
-    marginBottom: 12,
-  },
-  filtersContent: {
-    paddingHorizontal: 20,
-    gap: 8,
-  },
-  filterChip: {
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 22,
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.divider,
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  filterChipActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  filterText: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    fontWeight: '600',
-  },
-  filterTextActive: {
-    color: COLORS.surface,
-  },
   list: {
-    flex: 1,
     paddingHorizontal: 20,
-  },
-  emptyCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
-    padding: 32,
-    alignItems: 'center',
-    gap: 8,
-    ...SHADOWS.small,
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  emptyText: {
-    fontSize: 13,
-    color: COLORS.textTertiary,
-  },
-  taskCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.surface,
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 10,
-    minHeight: 56,
-    ...SHADOWS.small,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: COLORS.divider,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  checkboxDone: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  taskContent: {
-    flex: 1,
-  },
-  taskTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  taskDone: {
-    textDecorationLine: 'line-through',
-    color: COLORS.textTertiary,
-  },
-  taskDescription: {
-    fontSize: 12,
-    color: COLORS.textTertiary,
-    marginTop: 2,
-  },
-  priorityBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
-    marginLeft: 8,
-    minHeight: 28,
-    justifyContent: 'center',
-  },
-  priorityText: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+    paddingBottom: 100,
   },
   fab: {
     position: 'absolute',
@@ -453,17 +410,21 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: COLORS.overlay,
     justifyContent: 'flex-end',
+  },
+  modalOverlayBg: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: COLORS.overlay,
   },
   modal: {
     backgroundColor: COLORS.surface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     padding: 24,
+    maxHeight: '85%',
   },
   modalHandle: {
-    width: 36,
+    width: 40,
     height: 4,
     borderRadius: 2,
     backgroundColor: COLORS.divider,
@@ -471,7 +432,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
     color: COLORS.textPrimary,
     marginBottom: 20,
@@ -495,25 +456,83 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: COLORS.textPrimary,
   },
-  priorityRow: {
-    flexDirection: 'row',
+  dateList: {
     gap: 8,
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  priorityChip: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    borderWidth: 1.5,
+  dateChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: COLORS.surfaceSecondary,
+    borderWidth: 1,
     borderColor: COLORS.divider,
     minHeight: 44,
     justifyContent: 'center',
   },
+  dateChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  dateChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  dateChipTextActive: {
+    color: COLORS.surface,
+  },
+  projectList: {
+    gap: 8,
+    marginBottom: 16,
+  },
+  projectChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: COLORS.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+    gap: 6,
+    minHeight: 44,
+  },
+  projectDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+  },
+  projectChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  priorityRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 24,
+  },
+  priorityChip: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: COLORS.divider,
+    gap: 6,
+    minHeight: 44,
+  },
+  priorityDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
   priorityChipText: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+    fontSize: 12,
+    fontWeight: '600',
   },
   modalButtons: {
     flexDirection: 'row',
@@ -522,7 +541,7 @@ const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     backgroundColor: COLORS.surfaceSecondary,
     borderWidth: 1,
@@ -538,11 +557,14 @@ const styles = StyleSheet.create({
   saveButton: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     backgroundColor: COLORS.primary,
     minHeight: 48,
     justifyContent: 'center',
+  },
+  saveButtonDisabled: {
+    opacity: 0.5,
   },
   saveText: {
     fontSize: 14,
