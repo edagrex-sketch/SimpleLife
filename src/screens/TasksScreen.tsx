@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -43,6 +44,7 @@ export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
   const [dueDate, setDueDate] = useState(today());
   const [project, setProject] = useState('General');
   const [refreshing, setRefreshing] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const headerAnim = useFadeIn({ delay: 0, translateY: 15 });
   const titleAnim = useFadeIn({ delay: 100, translateY: 15 });
@@ -86,8 +88,9 @@ export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
 
   const handleAdd = async () => {
     if (!title.trim()) return;
+    setSubmitting(true);
     hapticSuccess();
-    await addTask({
+    const error = await addTask({
       title: title.trim(),
       description,
       priority,
@@ -95,6 +98,11 @@ export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
       project,
       is_done: false,
     });
+    setSubmitting(false);
+    if (error) {
+      Alert.alert('Error', error);
+      return;
+    }
     resetForm();
     setShowModal(false);
   };
@@ -330,11 +338,11 @@ export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
                 <Text style={styles.cancelText}>Cancelar</Text>
               </Pressable>
               <Pressable
-                style={[styles.saveButton, !title.trim() && styles.saveButtonDisabled]}
+                style={[styles.saveButton, (!title.trim() || submitting) && styles.saveButtonDisabled]}
                 onPress={handleAdd}
-                disabled={!title.trim()}
+                disabled={!title.trim() || submitting}
               >
-                <Text style={styles.saveText}>Crear</Text>
+                <Text style={styles.saveText}>{submitting ? 'Creando...' : 'Crear'}</Text>
               </Pressable>
             </View>
           </View>

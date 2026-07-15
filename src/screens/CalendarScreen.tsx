@@ -7,6 +7,9 @@ import {
   TextInput,
   Modal,
   StyleSheet,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,6 +19,7 @@ import { COLORS } from '../utils/colors';
 import { useCalendar } from '../context/CalendarContext';
 import { MONTHS, DAYS, getMonthDays, formatDate } from '../utils/helpers';
 import { useFadeIn } from '../hooks/useFadeIn';
+import { validateRequired, validateTime, validateTimeRange } from '../utils/validation';
 
 export default function CalendarScreen() {
   const { events, addEvent, deleteEvent } = useCalendar();
@@ -41,21 +45,35 @@ export default function CalendarScreen() {
   const [description, setDescription] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [titleError, setTitleError] = useState('');
+  const [timeError, setTimeError] = useState('');
 
   const headerAnim = useFadeIn({ delay: 0, translateY: 15 });
   const calendarAnim = useFadeIn({ delay: 150, translateY: 20 });
   const eventsAnim = useFadeIn({ delay: 300, translateY: 20 });
 
   const handleAdd = async () => {
-    if (!title.trim() || !selectedDate) return;
-    await addEvent({
+    const tErr = validateRequired(title, 'Título');
+    const trErr = validateTimeRange(startTime, endTime);
+    setTitleError(tErr || '');
+    setTimeError(trErr || '');
+    if (tErr || trErr) return;
+
+    setSubmitting(true);
+    const error = await addEvent({
       title: title.trim(),
       description,
-      event_date: selectedDate,
+      event_date: selectedDate!,
       start_time: startTime || undefined,
       end_time: endTime || undefined,
       category: 'General',
     });
+    setSubmitting(false);
+    if (error) {
+      Alert.alert('Error', error);
+      return;
+    }
     setTitle('');
     setDescription('');
     setStartTime('');
@@ -185,12 +203,16 @@ export default function CalendarScreen() {
 
       {/* Add Modal */}
       <Modal visible={showModal} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <Pressable style={styles.modalOverlayBg} onPress={() => setShowModal(false)} />
           <View style={styles.modal}>
             <View style={styles.modalHandle} />
             <Text style={styles.modalTitle}>Nuevo Evento</Text>
 
-            <View style={styles.inputContainer}>
+            <View style={[styles.inputContainer, titleError && styles.inputError]}>
               <Ionicons
                 name="document-text-outline"
                 size={20}
@@ -202,9 +224,10 @@ export default function CalendarScreen() {
                 placeholder="Título del evento"
                 placeholderTextColor={COLORS.textTertiary}
                 value={title}
-                onChangeText={setTitle}
+                onChangeText={(t) => { setTitle(t); if (titleError) setTitleError(''); }}
               />
             </View>
+            {titleError ? <Text style={styles.errorText}>{titleError}</Text> : null}
 
             <View style={styles.inputContainer}>
               <Ionicons
@@ -255,6 +278,7 @@ export default function CalendarScreen() {
                 />
               </View>
             </View>
+            {timeError ? <Text style={styles.errorText}>{timeError}</Text> : null}
 
             <View style={styles.modalButtons}>
               <Pressable
@@ -263,12 +287,16 @@ export default function CalendarScreen() {
               >
                 <Text style={styles.cancelText}>Cancelar</Text>
               </Pressable>
-              <Pressable style={styles.saveButton} onPress={handleAdd}>
-                <Text style={styles.saveText}>Crear Evento</Text>
+              <Pressable
+                style={[styles.saveButton, (!title.trim() || submitting) && styles.saveButtonDisabled]}
+                onPress={handleAdd}
+                disabled={!title.trim() || submitting}
+              >
+                <Text style={styles.saveText}>{submitting ? 'Creando...' : 'Crear Evento'}</Text>
               </Pressable>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );
@@ -426,8 +454,11 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: COLORS.overlay,
     justifyContent: 'flex-end',
+  },
+  modalOverlayBg: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: COLORS.overlay,
   },
   modal: {
     backgroundColor: COLORS.surface,
@@ -461,6 +492,18 @@ const styles = StyleSheet.create({
   },
   inputIcon: {
     marginRight: 10,
+  },
+  inputError: {
+    borderColor: COLORS.error,
+    backgroundColor: COLORS.errorSurface,
+  },
+  errorText: {
+    fontSize: 12,
+    color: COLORS.error,
+    fontWeight: '500',
+    marginTop: 4,
+    marginBottom: 4,
+    marginLeft: 4,
   },
   input: {
     flex: 1,
@@ -497,6 +540,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     backgroundColor: COLORS.primary,
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
   },
   saveText: {
     fontSize: 14,

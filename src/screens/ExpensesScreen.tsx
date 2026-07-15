@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,6 +21,7 @@ import { useNotifications } from '../context/NotificationsContext';
 import { today, formatAmount } from '../utils/helpers';
 import { useFadeIn } from '../hooks/useFadeIn';
 import { hapticLight, hapticMedium, hapticSuccess } from '../hooks/useHaptic';
+import { validateRequired, validateAmount } from '../utils/validation';
 import ExpenseDonutChart from '../components/ExpenseDonutChart';
 
 const EXPENSE_ICONS: Record<string, { icon: string; color: string; bg: string }> = {
@@ -66,6 +68,9 @@ export default function ExpensesScreen({ onOpenNotifications }: ExpensesScreenPr
   const [date, setDate] = useState(today());
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [refreshing, setRefreshing] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [titleError, setTitleError] = useState('');
+  const [amountError, setAmountError] = useState('');
 
   const headerAnim = useFadeIn({ delay: 0, translateY: 15 });
   const balanceAnim = useFadeIn({ delay: 100, translateY: 20 });
@@ -130,14 +135,25 @@ export default function ExpensesScreen({ onOpenNotifications }: ExpensesScreenPr
   }, [expenses]);
 
   const handleAdd = async () => {
-    if (!title.trim() || !amount) return;
+    const tErr = validateRequired(title, 'Descripción');
+    const aErr = validateAmount(amount);
+    setTitleError(tErr || '');
+    setAmountError(aErr || '');
+    if (tErr || aErr) return;
+
+    setSubmitting(true);
     hapticSuccess();
-    await addExpense({
+    const error = await addExpense({
       title: title.trim(),
       amount: parseFloat(amount),
       category,
       date,
     });
+    setSubmitting(false);
+    if (error) {
+      Alert.alert('Error', error);
+      return;
+    }
     setTitle('');
     setAmount('');
     setCategory('Otros');
@@ -326,28 +342,30 @@ export default function ExpensesScreen({ onOpenNotifications }: ExpensesScreenPr
             <Text style={styles.modalTitle}>Nuevo Gasto</Text>
 
             <Text style={styles.inputLabel}>Descripción</Text>
-            <View style={styles.inputContainer}>
+            <View style={[styles.inputContainer, titleError && styles.inputError]}>
               <TextInput
                 style={styles.input}
                 placeholder="Nombre del gasto"
                 placeholderTextColor={COLORS.textTertiary}
                 value={title}
-                onChangeText={setTitle}
+                onChangeText={(t) => { setTitle(t); if (titleError) setTitleError(''); }}
                 autoFocus
               />
             </View>
+            {titleError ? <Text style={styles.errorText}>{titleError}</Text> : null}
 
             <Text style={styles.inputLabel}>Monto</Text>
-            <View style={styles.inputContainer}>
+            <View style={[styles.inputContainer, amountError && styles.inputError]}>
               <TextInput
                 style={styles.input}
                 placeholder="$0.00"
                 placeholderTextColor={COLORS.textTertiary}
                 value={amount}
-                onChangeText={setAmount}
+                onChangeText={(t) => { setAmount(t); if (amountError) setAmountError(''); }}
                 keyboardType="decimal-pad"
               />
             </View>
+            {amountError ? <Text style={styles.errorText}>{amountError}</Text> : null}
 
             <Text style={styles.inputLabel}>Categoría</Text>
             <FlatList
@@ -391,11 +409,11 @@ export default function ExpensesScreen({ onOpenNotifications }: ExpensesScreenPr
                 <Text style={styles.cancelText}>Cancelar</Text>
               </Pressable>
               <Pressable
-                style={[styles.saveButton, (!title.trim() || !amount) && styles.saveButtonDisabled]}
+                style={[styles.saveButton, ((!title.trim() || !amount) || submitting) && styles.saveButtonDisabled]}
                 onPress={handleAdd}
-                disabled={!title.trim() || !amount}
+                disabled={!title.trim() || !amount || submitting}
               >
-                <Text style={styles.saveText}>Guardar</Text>
+                <Text style={styles.saveText}>{submitting ? 'Guardando...' : 'Guardar'}</Text>
               </Pressable>
             </View>
           </View>
@@ -757,12 +775,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: COLORS.divider,
-    marginBottom: 16,
+  },
+  inputError: {
+    borderColor: COLORS.error,
+    backgroundColor: COLORS.errorSurface,
   },
   input: {
     paddingVertical: 14,
     fontSize: 15,
     color: COLORS.textPrimary,
+  },
+  errorText: {
+    fontSize: 12,
+    color: COLORS.error,
+    fontWeight: '500',
+    marginTop: 4,
+    marginBottom: 12,
+    marginLeft: 4,
   },
   categoryList: {
     gap: 8,

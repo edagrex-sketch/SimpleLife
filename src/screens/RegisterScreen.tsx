@@ -5,7 +5,6 @@ import {
   TextInput,
   Pressable,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -15,6 +14,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { COLORS, SHADOWS } from '../utils/colors';
 import { useAuth } from '../context/AuthContext';
 import { useFadeIn } from '../hooks/useFadeIn';
+import { validateName, validateEmail, validatePassword } from '../utils/validation';
 
 interface Props {
   onSwitchToLogin: () => void;
@@ -26,6 +26,10 @@ export default function RegisterScreen({ onSwitchToLogin }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [nameError, setNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [serverError, setServerError] = useState('');
 
   const logoAnim = useFadeIn({ delay: 0, translateY: 30 });
   const titleAnim = useFadeIn({ delay: 150, translateY: 20 });
@@ -34,15 +38,19 @@ export default function RegisterScreen({ onSwitchToLogin }: Props) {
   const loginAnim = useFadeIn({ delay: 550, translateY: 15 });
 
   const handleRegister = async () => {
-    if (!name || !email || !password) return;
+    setServerError('');
+    const nErr = validateName(name);
+    const eErr = validateEmail(email);
+    const pErr = validatePassword(password, 8);
+    setNameError(nErr || '');
+    setEmailError(eErr || '');
+    setPasswordError(pErr || '');
+    if (nErr || eErr || pErr) return;
+
     setLoading(true);
-    const error = await signUp(email, password, name);
+    const error = await signUp(email.trim(), password, name.trim());
     setLoading(false);
-    if (error) {
-      Alert.alert('Error', error);
-    } else {
-      Alert.alert('Cuenta creada', 'Revisa tu correo para confirmar tu cuenta.');
-    }
+    if (error) setServerError(error);
   };
 
   return (
@@ -64,44 +72,56 @@ export default function RegisterScreen({ onSwitchToLogin }: Props) {
           <Text style={styles.subtitle}>Comienza tu viaje SimpleLife</Text>
         </Animated.View>
 
+        {/* Server Error */}
+        {serverError ? (
+          <View style={styles.serverErrorContainer}>
+            <Ionicons name="alert-circle" size={16} color={COLORS.error} />
+            <Text style={styles.serverErrorText}>{serverError}</Text>
+          </View>
+        ) : null}
+
         {/* Form Card */}
         <Animated.View style={[styles.card, cardAnim.animatedStyle]}>
           <Text style={styles.inputLabel}>Nombre</Text>
-          <View style={styles.inputContainer}>
+          <View style={[styles.inputContainer, nameError && styles.inputError]}>
             <TextInput
               style={styles.input}
               placeholder="Tu nombre"
               placeholderTextColor={COLORS.textTertiary}
               value={name}
-              onChangeText={setName}
+              onChangeText={(t) => { setName(t); if (nameError) setNameError(''); if (serverError) setServerError(''); }}
               autoCapitalize="words"
             />
           </View>
+          {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null}
 
           <Text style={styles.inputLabel}>Correo Electrónico</Text>
-          <View style={styles.inputContainer}>
+          <View style={[styles.inputContainer, emailError && styles.inputError]}>
             <TextInput
               style={styles.input}
               placeholder="nombre@ejemplo.com"
               placeholderTextColor={COLORS.textTertiary}
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(t) => { setEmail(t); if (emailError) setEmailError(''); if (serverError) setServerError(''); }}
               keyboardType="email-address"
               autoCapitalize="none"
+              autoCorrect={false}
             />
           </View>
+          {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
 
           <Text style={styles.inputLabel}>Contraseña</Text>
-          <View style={styles.inputContainer}>
+          <View style={[styles.inputContainer, passwordError && styles.inputError]}>
             <TextInput
               style={styles.input}
-              placeholder="••••••••"
+              placeholder="Mínimo 8 caracteres"
               placeholderTextColor={COLORS.textTertiary}
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(t) => { setPassword(t); if (passwordError) setPasswordError(''); if (serverError) setServerError(''); }}
               secureTextEntry
             />
           </View>
+          {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
           {/* Register Button */}
           <Pressable
@@ -185,6 +205,21 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 32,
   },
+  serverErrorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.errorSurface,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 16,
+    gap: 8,
+  },
+  serverErrorText: {
+    fontSize: 13,
+    color: COLORS.error,
+    fontWeight: '500',
+    flex: 1,
+  },
   card: {
     backgroundColor: COLORS.surface,
     borderRadius: 20,
@@ -205,13 +240,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: COLORS.divider,
-    marginBottom: 16,
+  },
+  inputError: {
+    borderColor: COLORS.error,
+    backgroundColor: COLORS.errorSurface,
   },
   input: {
     flex: 1,
     paddingVertical: 14,
     fontSize: 15,
     color: COLORS.textPrimary,
+  },
+  errorText: {
+    fontSize: 12,
+    color: COLORS.error,
+    fontWeight: '500',
+    marginTop: 4,
+    marginBottom: 12,
+    marginLeft: 4,
   },
   registerButton: {
     flexDirection: 'row',
@@ -220,7 +266,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     borderRadius: 12,
     paddingVertical: 16,
-    marginTop: 8,
+    marginTop: 16,
     minHeight: 50,
     gap: 8,
   },

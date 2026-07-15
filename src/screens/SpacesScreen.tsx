@@ -16,6 +16,7 @@ import SpaceCard from '../components/SpaceCard';
 import { COLORS, SHADOWS } from '../utils/colors';
 import { useSpaces } from '../context/SpacesContext';
 import { useFadeIn } from '../hooks/useFadeIn';
+import { validateName, validateInviteCode } from '../utils/validation';
 
 export default function SpacesScreen() {
   const { spaces, createSpace, joinSpace, leaveSpace } = useSpaces();
@@ -23,21 +24,39 @@ export default function SpacesScreen() {
   const [showJoin, setShowJoin] = useState(false);
   const [name, setName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [joining, setJoining] = useState(false);
+  const [nameError, setNameError] = useState('');
+  const [codeError, setCodeError] = useState('');
 
   const headerAnim = useFadeIn({ delay: 0, translateY: 15 });
   const actionsAnim = useFadeIn({ delay: 150, translateY: 20 });
   const listAnim = useFadeIn({ delay: 300, translateY: 20 });
 
   const handleCreate = async () => {
-    if (!name.trim()) return;
-    await createSpace(name.trim());
+    const err = validateName(name);
+    setNameError(err || '');
+    if (err) return;
+
+    setCreating(true);
+    const error = await createSpace(name.trim());
+    setCreating(false);
+    if (error) {
+      Alert.alert('Error', error);
+      return;
+    }
     setName('');
     setShowCreate(false);
   };
 
   const handleJoin = async () => {
-    if (!inviteCode.trim()) return;
+    const err = validateInviteCode(inviteCode);
+    setCodeError(err || '');
+    if (err) return;
+
+    setJoining(true);
     const error = await joinSpace(inviteCode.trim().toUpperCase());
+    setJoining(false);
     if (error) {
       Alert.alert('Error', error);
     } else {
@@ -127,7 +146,7 @@ export default function SpacesScreen() {
               Crea un espacio para colaborar con tu familia o equipo
             </Text>
 
-            <View style={styles.inputContainer}>
+            <View style={[styles.inputContainer, nameError && styles.inputError]}>
               <Ionicons
                 name="people-outline"
                 size={20}
@@ -139,9 +158,10 @@ export default function SpacesScreen() {
                 placeholder="Nombre del espacio"
                 placeholderTextColor={COLORS.textTertiary}
                 value={name}
-                onChangeText={setName}
+                onChangeText={(t) => { setName(t); if (nameError) setNameError(''); }}
               />
             </View>
+            {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null}
 
             <View style={styles.modalButtons}>
               <Pressable
@@ -150,8 +170,12 @@ export default function SpacesScreen() {
               >
                 <Text style={styles.cancelText}>Cancelar</Text>
               </Pressable>
-              <Pressable style={styles.saveButton} onPress={handleCreate}>
-                <Text style={styles.saveText}>Crear Espacio</Text>
+              <Pressable
+                style={[styles.saveButton, (!name.trim() || creating) && styles.saveButtonDisabled]}
+                onPress={handleCreate}
+                disabled={!name.trim() || creating}
+              >
+                <Text style={styles.saveText}>{creating ? 'Creando...' : 'Crear Espacio'}</Text>
               </Pressable>
             </View>
           </View>
@@ -168,7 +192,7 @@ export default function SpacesScreen() {
               Ingresa el código de invitación que recibiste
             </Text>
 
-            <View style={styles.inputContainer}>
+            <View style={[styles.inputContainer, codeError && styles.inputError]}>
               <Ionicons
                 name="key-outline"
                 size={20}
@@ -180,10 +204,11 @@ export default function SpacesScreen() {
                 placeholder="Código de invitación"
                 placeholderTextColor={COLORS.textTertiary}
                 value={inviteCode}
-                onChangeText={setInviteCode}
+                onChangeText={(t) => { setInviteCode(t); if (codeError) setCodeError(''); }}
                 autoCapitalize="characters"
               />
             </View>
+            {codeError ? <Text style={styles.errorText}>{codeError}</Text> : null}
 
             <View style={styles.modalButtons}>
               <Pressable
@@ -192,8 +217,12 @@ export default function SpacesScreen() {
               >
                 <Text style={styles.cancelText}>Cancelar</Text>
               </Pressable>
-              <Pressable style={styles.saveButton} onPress={handleJoin}>
-                <Text style={styles.saveText}>Unirse</Text>
+              <Pressable
+                style={[styles.saveButton, (!inviteCode.trim() || joining) && styles.saveButtonDisabled]}
+                onPress={handleJoin}
+                disabled={!inviteCode.trim() || joining}
+              >
+                <Text style={styles.saveText}>{joining ? 'Uniendo...' : 'Unirse'}</Text>
               </Pressable>
             </View>
           </View>
@@ -339,8 +368,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.divider,
   },
+  inputError: {
+    borderColor: COLORS.error,
+    backgroundColor: COLORS.errorSurface,
+  },
   inputIcon: {
     marginRight: 10,
+  },
+  errorText: {
+    fontSize: 12,
+    color: COLORS.error,
+    fontWeight: '500',
+    marginTop: 4,
+    marginBottom: 4,
+    marginLeft: 4,
   },
   input: {
     flex: 1,
@@ -373,6 +414,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     backgroundColor: COLORS.primary,
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
   },
   saveText: {
     fontSize: 14,

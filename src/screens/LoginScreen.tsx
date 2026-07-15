@@ -15,6 +15,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { COLORS, SHADOWS } from '../utils/colors';
 import { useAuth } from '../context/AuthContext';
 import { useFadeIn } from '../hooks/useFadeIn';
+import { validateEmail, validatePassword } from '../utils/validation';
 
 interface Props {
   onSwitchToRegister: () => void;
@@ -26,6 +27,9 @@ export default function LoginScreen({ onSwitchToRegister }: Props) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [serverError, setServerError] = useState('');
 
   const logoAnim = useFadeIn({ delay: 0, translateY: 30 });
   const titleAnim = useFadeIn({ delay: 150, translateY: 20 });
@@ -34,11 +38,29 @@ export default function LoginScreen({ onSwitchToRegister }: Props) {
   const registerAnim = useFadeIn({ delay: 550, translateY: 15 });
 
   const handleLogin = async () => {
-    if (!email || !password) return;
+    setServerError('');
+    const eErr = validateEmail(email);
+    const pErr = validatePassword(password);
+    setEmailError(eErr || '');
+    setPasswordError(pErr || '');
+    if (eErr || pErr) return;
+
     setLoading(true);
-    const error = await signIn(email, password);
+    const error = await signIn(email.trim(), password);
     setLoading(false);
-    if (error) Alert.alert('Error', error);
+    if (error) setServerError(error);
+  };
+
+  const handleEmailChange = (text: string) => {
+    setEmail(text);
+    if (emailError) setEmailError('');
+    if (serverError) setServerError('');
+  };
+
+  const handlePasswordChange = (text: string) => {
+    setPassword(text);
+    if (passwordError) setPasswordError('');
+    if (serverError) setServerError('');
   };
 
   return (
@@ -60,20 +82,30 @@ export default function LoginScreen({ onSwitchToRegister }: Props) {
           <Text style={styles.subtitle}>Tu vida, simplificada</Text>
         </Animated.View>
 
+        {/* Server Error */}
+        {serverError ? (
+          <View style={styles.serverErrorContainer}>
+            <Ionicons name="alert-circle" size={16} color={COLORS.error} />
+            <Text style={styles.serverErrorText}>{serverError}</Text>
+          </View>
+        ) : null}
+
         {/* Form Card */}
         <Animated.View style={[styles.card, cardAnim.animatedStyle]}>
-          <Text style={styles.inputLabel}>Correo Electrónica</Text>
-          <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Correo Electrónico</Text>
+          <View style={[styles.inputContainer, emailError && styles.inputError]}>
             <TextInput
               style={styles.input}
               placeholder="nombre@ejemplo.com"
               placeholderTextColor={COLORS.textTertiary}
               value={email}
-              onChangeText={setEmail}
+              onChangeText={handleEmailChange}
               keyboardType="email-address"
               autoCapitalize="none"
+              autoCorrect={false}
             />
           </View>
+          {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
 
           <View style={styles.passwordHeader}>
             <Text style={styles.inputLabel}>Contraseña</Text>
@@ -81,13 +113,13 @@ export default function LoginScreen({ onSwitchToRegister }: Props) {
               <Text style={styles.forgotPassword}>¿Olvidaste tu contraseña?</Text>
             </Pressable>
           </View>
-          <View style={styles.inputContainer}>
+          <View style={[styles.inputContainer, passwordError && styles.inputError]}>
             <TextInput
               style={styles.input}
               placeholder="••••••••"
               placeholderTextColor={COLORS.textTertiary}
               value={password}
-              onChangeText={setPassword}
+              onChangeText={handlePasswordChange}
               secureTextEntry={!showPassword}
             />
             <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
@@ -98,6 +130,7 @@ export default function LoginScreen({ onSwitchToRegister }: Props) {
               />
             </Pressable>
           </View>
+          {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
           {/* Login Button */}
           <Pressable
@@ -181,6 +214,21 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 32,
   },
+  serverErrorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.errorSurface,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 16,
+    gap: 8,
+  },
+  serverErrorText: {
+    fontSize: 13,
+    color: COLORS.error,
+    fontWeight: '500',
+    flex: 1,
+  },
   card: {
     backgroundColor: COLORS.surface,
     borderRadius: 20,
@@ -201,7 +249,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: COLORS.divider,
-    marginBottom: 16,
+  },
+  inputError: {
+    borderColor: COLORS.error,
+    backgroundColor: COLORS.errorSurface,
   },
   input: {
     flex: 1,
@@ -212,10 +263,19 @@ const styles = StyleSheet.create({
   eyeButton: {
     padding: 12,
   },
+  errorText: {
+    fontSize: 12,
+    color: COLORS.error,
+    fontWeight: '500',
+    marginTop: 4,
+    marginBottom: 12,
+    marginLeft: 4,
+  },
   passwordHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 16,
     marginBottom: 8,
   },
   forgotPasswordTouchable: {
@@ -233,7 +293,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     borderRadius: 12,
     paddingVertical: 16,
-    marginTop: 8,
+    marginTop: 16,
     minHeight: 50,
     gap: 8,
   },
