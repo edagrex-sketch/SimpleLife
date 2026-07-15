@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, Pressable, View, StatusBar } from 'react-native';
+import { StyleSheet, Text, Pressable, View, StatusBar, Image } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  withRepeat,
+  withSequence,
   Easing,
 } from 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -37,6 +39,50 @@ function AuthFlow() {
   );
 }
 
+function SplashLoadingScreen() {
+  const scale = useSharedValue(0.8);
+  const opacity = useSharedValue(0);
+  const pulseScale = useSharedValue(1);
+
+  React.useEffect(() => {
+    opacity.value = withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) });
+    scale.value = withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) });
+    pulseScale.value = withRepeat(
+      withSequence(
+        withTiming(1.08, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      false
+    );
+  }, []);
+
+  const logoAnim = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ scale: scale.value * pulseScale.value }],
+  }));
+
+  const textAnim = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  return (
+    <View style={styles.loadingContainer}>
+      <Animated.View style={[styles.loadingLogoContainer, logoAnim]}>
+        <Image
+          source={require('./ios/SimpleLife/Images.xcassets/AppIcon.appiconset/icon-1024.png')}
+          style={styles.loadingLogo}
+          resizeMode="contain"
+        />
+      </Animated.View>
+      <Animated.View style={textAnim}>
+        <Text style={styles.loadingTitle}>VidaSimple</Text>
+        <Text style={styles.loadingSubtitle}>Tu vida, simplificada</Text>
+      </Animated.View>
+    </View>
+  );
+}
+
 function AnimatedScreen({ children, tabKey }: { children: React.ReactNode; tabKey: string }) {
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(12);
@@ -65,15 +111,7 @@ function MainApp() {
   const [showNotifications, setShowNotifications] = useState(false);
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <View style={styles.loadingIconContainer}>
-          <Text style={styles.loadingIcon}>🌅</Text>
-        </View>
-        <Text style={styles.loadingTitle}>VidaSimple</Text>
-        <Text style={styles.loadingSubtitle}>Tu vida, simplificada</Text>
-      </View>
-    );
+    return <SplashLoadingScreen />;
   }
 
   if (!user) {
@@ -168,26 +206,29 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    gap: 16,
   },
-  loadingIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: COLORS.primarySurface,
+  loadingLogoContainer: {
+    width: 120,
+    height: 120,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  loadingIcon: { fontSize: 40 },
+  loadingLogo: {
+    width: 120,
+    height: 120,
+  },
   loadingTitle: {
     fontSize: 28,
     fontWeight: '700',
     color: COLORS.textPrimary,
+    textAlign: 'center',
   },
   loadingSubtitle: {
     fontSize: 14,
     color: COLORS.textSecondary,
     fontWeight: '500',
+    textAlign: 'center',
   },
 });
 
