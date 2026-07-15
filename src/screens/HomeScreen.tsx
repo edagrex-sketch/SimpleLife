@@ -342,7 +342,7 @@ function TimelineItem({
   const itemAnim = useStagger({ index, staggerDelay: 60, translateY: 12 });
   const isTask = item.type === 'task';
   const dotColor = isTask
-    ? PRIORITY_COLORS[item.priority || 'low']
+    ? PRIORITY_COLORS[item.priority || 'baja']
     : CATEGORY_COLORS[item.category || 'General'] || COLORS.primary;
 
   return (

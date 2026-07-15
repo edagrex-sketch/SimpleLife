@@ -91,15 +91,15 @@ export const SHADOWS = {
 };
 
 export const PRIORITY_COLORS: Record<string, string> = {
-  low: '#4CAF50',
-  medium: '#DFAD6D',
-  high: '#C56A49',
+  baja: '#4CAF50',
+  media: '#DFAD6D',
+  alta: '#C56A49',
 };
 
 export const PRIORITY_LABELS: Record<string, string> = {
-  low: 'Baja',
-  medium: 'Media',
-  high: 'Alta',
+  baja: 'Baja',
+  media: 'Media',
+  alta: 'Alta',
 };
 
 export const CATEGORY_COLORS: Record<string, string> = {

@@ -40,7 +40,7 @@ export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
   const [showModal, setShowModal] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState<TaskPriority>('medium');
+  const [priority, setPriority] = useState<TaskPriority>('media');
   const [dueDate, setDueDate] = useState(today());
   const [project, setProject] = useState('General');
   const [refreshing, setRefreshing] = useState(false);
@@ -110,7 +110,7 @@ export default function TasksScreen({ onOpenNotifications }: TasksScreenProps) {
   const resetForm = () => {
     setTitle('');
     setDescription('');
-    setPriority('medium');
+    setPriority('media');
     setDueDate(today());
     setProject('General');
   };
